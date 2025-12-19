@@ -1,8 +1,8 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./index.css";
 import App from "./App.tsx";
 import "@stellar/design-system/build/styles.min.css";
+import "./index.css";
 import { WalletProvider } from "./providers/WalletProvider.tsx";
 import { Web3Provider } from "./contexts/web3-context";
 import { DelegationProvider } from "./contexts/delegation-context";
@@ -23,7 +23,7 @@ const queryClient = new QueryClient({
 
 createRoot(document.getElementById("root") as HTMLElement).render(
   <StrictMode>
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="decent-pay-theme">
       <StellarNotificationProvider>
         <QueryClientProvider client={queryClient}>
           <WalletProvider>

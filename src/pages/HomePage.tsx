@@ -116,16 +116,18 @@ export default function HomePage() {
             transition={{ duration: 0.6 }}
             className="max-w-4xl mx-auto text-center"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border border-primary/20 mb-6">
-              <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-              <span className="text-sm font-medium">
-                Powered by Stellar Testnet
-              </span>
+            <div className="flex justify-center mb-12">
+              <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full glass border border-primary/20 hover:border-primary/40 transition-colors duration-300">
+                <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                <span className="text-sm font-semibold tracking-wide uppercase">
+                  Powered by Stellar Testnet
+                </span>
+              </div>
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 text-balance leading-tight">
+            <h1 className="text-5xl md:text-7xl font-extrabold mb-8 text-balance leading-[1.1] tracking-tight">
               Empower Your Freelance Vision with{" "}
-              <span className="bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent drop-shadow-sm">
                 Trustless Escrow.
               </span>
             </h1>
