@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # DeCent-Pay 🔐
 
 <div align="center">
@@ -636,7 +635,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-## 📞 Support
+## Support
 
 - **Documentation**: Check this README and inline code comments
 - **Issues**: Open an issue on GitHub
@@ -648,9 +647,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Built with ❤️ on Stellar**
 
-[Stellar](https://stellar.org) • [Soroban](https://soroban.stellar.org) • [Documentation](https://developers.stellar.org)
-
 </div>
-=======
-# DecentFlow
->>>>>>> 70e07b9e88bd9cb979321afec158eee706e77506
+
