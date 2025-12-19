@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # DeCent-Pay 🔐
 
 <div align="center">
@@ -650,3 +651,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 [Stellar](https://stellar.org) • [Soroban](https://soroban.stellar.org) • [Documentation](https://developers.stellar.org)
 
 </div>
+=======
+# DecentFlow
+>>>>>>> 70e07b9e88bd9cb979321afec158eee706e77506
