@@ -7,6 +7,7 @@ import { useWeb3 } from "@/contexts/web3-context";
 import { CONTRACTS } from "@/lib/web3/config";
 
 import { motion } from "framer-motion";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function HomePage() {
   const { wallet } = useWeb3();
@@ -161,52 +162,50 @@ export default function HomePage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mt-20"
           >
-            <Card className="glass border-primary/20 p-6 text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-4">
+            <Card className="glass border-primary/20 p-6 text-center hover:border-primary/50 transition-all duration-500 group">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-4 group-hover:scale-110 transition-transform duration-500">
                 <TrendingUp className="h-6 w-6 text-primary" />
               </div>
-              <div className="text-4xl font-bold mb-2">
+              <div className="text-4xl font-bold mb-2 tracking-tight">
                 {loading ? (
-                  <span className="animate-pulse text-muted-foreground">…</span>
+                  <Skeleton className="h-10 w-16 mx-auto" />
                 ) : (
                   stats.activeEscrows
                 )}
               </div>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                 Active Contracts
               </div>
             </Card>
 
-            <Card className="glass border-accent/20 p-6 text-center glow-accent">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-accent/10 mb-4">
+            <Card className="glass border-accent/20 p-6 text-center glow-accent hover:border-accent/50 transition-all duration-500 group">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-accent/10 mb-4 group-hover:scale-110 transition-transform duration-500">
                 <Shield className="h-6 w-6 text-accent" />
               </div>
-              <div className="text-4xl font-bold mb-2">
+              <div className="text-4xl font-bold mb-2 tracking-tight text-accent">
                 {loading ? (
-                  <span className="animate-pulse text-muted-foreground">
-                    $...
-                  </span>
+                  <Skeleton className="h-10 w-24 mx-auto" />
                 ) : (
                   `$${stats.totalVolume}`
                 )}
               </div>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                 Total Value Secured
               </div>
             </Card>
 
-            <Card className="glass border-primary/20 p-6 text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-4">
+            <Card className="glass border-primary/20 p-6 text-center hover:border-primary/50 transition-all duration-500 group">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-4 group-hover:scale-110 transition-transform duration-500">
                 <CheckCircle2 className="h-6 w-6 text-primary" />
               </div>
-              <div className="text-4xl font-bold mb-2">
+              <div className="text-4xl font-bold mb-2 tracking-tight">
                 {loading ? (
-                  <span className="animate-pulse text-muted-foreground">…</span>
+                  <Skeleton className="h-10 w-16 mx-auto" />
                 ) : (
                   stats.completedEscrows
                 )}
               </div>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                 Milestones Delivered
               </div>
             </Card>

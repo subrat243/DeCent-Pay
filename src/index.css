@@ -6,7 +6,6 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* New Theme for DeCent-Pay - Midnight Emerald & Vivid Purple */
   --background: oklch(0.99 0.005 160);
   --foreground: oklch(0.12 0.02 160);
   --card: oklch(0.98 0.008 160);
@@ -14,27 +13,31 @@
   --popover: oklch(0.99 0.005 160);
   --popover-foreground: oklch(0.12 0.02 160);
   --primary: oklch(0.55 0.17 155);
-  /* Emerald Green - Darkened for better white text contrast */
   --primary-foreground: oklch(0.99 0.005 160);
   --secondary: oklch(0.5 0.22 300);
-  /* Vivid Purple - Darkened for better white text contrast */
   --secondary-foreground: oklch(0.99 0.005 160);
   --muted: oklch(0.94 0.01 160);
   --muted-foreground: oklch(0.45 0.02 160);
   --accent: oklch(0.65 0.25 180);
-  /* Bright Teal/Mint */
   --accent-foreground: oklch(0.12 0.02 160);
   --destructive: oklch(0.6 0.18 25);
   --destructive-foreground: oklch(0.99 0.005 160);
   --border: oklch(0.88 0.01 160);
   --input: oklch(0.88 0.01 160);
   --ring: oklch(0.62 0.17 155);
+  --radius: 1.25rem;
+
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(0, 0, 0, 0.1);
+  --glow-primary: oklch(0.55 0.17 155 / 0.2);
+  --glow-accent: oklch(0.5 0.22 300 / 0.2);
+
   --chart-1: oklch(0.62 0.17 155);
   --chart-2: oklch(0.58 0.22 300);
   --chart-3: oklch(0.65 0.25 180);
   --chart-4: oklch(0.5 0.2 280);
   --chart-5: oklch(0.7 0.15 140);
-  --radius: 1.25rem;
+
   --sidebar: oklch(0.98 0.008 160);
   --sidebar-foreground: oklch(0.12 0.02 160);
   --sidebar-primary: oklch(0.62 0.17 155);
@@ -43,55 +46,33 @@
   --sidebar-accent-foreground: oklch(0.12 0.02 160);
   --sidebar-border: oklch(0.88 0.01 160);
   --sidebar-ring: oklch(0.62 0.17 155);
-
-  --glass-bg: oklch(0.98 0.008 160 / 0.7);
-  --glass-border: oklch(0.88 0.01 160 / 0.3);
-  --glow-primary: oklch(0.62 0.17 155 / 0.3);
-  --glow-accent: oklch(0.58 0.22 300 / 0.3);
 }
 
 .dark {
-  /* Dark mode with deep forest/obsidian tones */
-  --background: oklch(0.1 0.02 160);
-  --foreground: oklch(0.95 0.01 160);
-  --card: oklch(0.13 0.025 160);
-  --card-foreground: oklch(0.95 0.01 160);
-  --popover: oklch(0.1 0.02 160);
-  --popover-foreground: oklch(0.95 0.01 160);
-  --primary: oklch(0.7 0.18 155);
-  /* Luminous Emerald */
-  --primary-foreground: oklch(0.1 0.02 160);
-  --secondary: oklch(0.65 0.24 300);
-  /* Luminous Amethyst */
-  --secondary-foreground: oklch(0.99 0.005 160);
-  --muted: oklch(0.18 0.025 160);
-  --muted-foreground: oklch(0.6 0.02 160);
-  --accent: oklch(0.75 0.2 180);
-  /* Electric Mint */
-  --accent-foreground: oklch(0.1 0.02 160);
-  --destructive: oklch(0.55 0.22 25);
-  --destructive-foreground: oklch(0.95 0.01 160);
-  --border: oklch(0.22 0.03 160);
-  --input: oklch(0.22 0.03 160);
-  --ring: oklch(0.7 0.18 155);
-  --chart-1: oklch(0.7 0.18 155);
-  --chart-2: oklch(0.65 0.24 300);
-  --chart-3: oklch(0.75 0.2 180);
-  --chart-4: oklch(0.6 0.22 280);
-  --chart-5: oklch(0.8 0.15 140);
-  --sidebar: oklch(0.13 0.025 160);
-  --sidebar-foreground: oklch(0.95 0.01 160);
-  --sidebar-primary: oklch(0.7 0.18 155);
-  --sidebar-primary-foreground: oklch(0.1 0.02 160);
-  --sidebar-accent: oklch(0.18 0.03 160);
-  --sidebar-accent-foreground: oklch(0.95 0.01 160);
-  --sidebar-border: oklch(0.22 0.03 160);
-  --sidebar-ring: oklch(0.7 0.18 155);
+  --background: oklch(0.08 0.01 260);
+  --foreground: oklch(0.95 0.01 260);
+  --card: oklch(0.12 0.02 260);
+  --card-foreground: oklch(0.95 0.01 260);
+  --popover: oklch(0.1 0.02 260);
+  --popover-foreground: oklch(0.95 0.01 260);
+  --primary: oklch(0.65 0.2 280);
+  --primary-foreground: oklch(0.98 0.01 260);
+  --secondary: oklch(0.55 0.25 320);
+  --secondary-foreground: oklch(0.98 0.01 260);
+  --muted: oklch(0.18 0.02 260);
+  --muted-foreground: oklch(0.65 0.02 260);
+  --accent: oklch(0.75 0.18 190);
+  --accent-foreground: oklch(0.08 0.01 260);
+  --destructive: oklch(0.6 0.2 25);
+  --destructive-foreground: oklch(0.98 0.01 260);
+  --border: oklch(0.22 0.03 260);
+  --input: oklch(0.22 0.03 260);
+  --ring: oklch(0.65 0.2 280);
 
-  --glass-bg: oklch(0.13 0.025 160 / 0.7);
-  --glass-border: oklch(0.3 0.04 160 / 0.3);
-  --glow-primary: oklch(0.7 0.18 155 / 0.4);
-  --glow-accent: oklch(0.65 0.24 300 / 0.4);
+  --glass-bg: rgba(13, 17, 23, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glow-primary: oklch(0.65 0.2 280 / 0.4);
+  --glow-accent: oklch(0.75 0.18 190 / 0.4);
 }
 
 @theme inline {
