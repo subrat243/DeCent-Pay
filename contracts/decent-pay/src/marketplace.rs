@@ -3,7 +3,7 @@ use crate::escrow_core;
 use crate::storage_types::{Application, DataKey, EscrowStatus, DeCentPayError, INSTANCE_BUMP_AMOUNT, INSTANCE_LIFETIME_THRESHOLD};
 use soroban_sdk::{Env, Address, String, Vec, Error};
 
-const MAX_APPLICATIONS: u32 = 50;
+const MAX_APPLICATIONS: u32 = 10;
 
 pub fn apply_to_job(
     env: &Env,
@@ -13,8 +13,8 @@ pub fn apply_to_job(
     proposed_timeline: u32,
 ) -> Result<(), Error> {
     // Require auth from the freelancer address
-    // The freelancer must sign the transaction
     freelancer.require_auth();
+    // env.events().publish((symbol_short!("log"), symbol_short!("start")), 0u32);
 
     // Check if job creation is paused
     if admin::is_job_creation_paused(env) {
@@ -23,9 +23,11 @@ pub fn apply_to_job(
 
     // Validate escrow
     escrow_core::require_valid_escrow(env, escrow_id)?;
+    // env.events().publish((symbol_short!("log"), symbol_short!("valid")), escrow_id);
+
     let escrow = escrow_core::get_escrow(env, escrow_id)
         .ok_or_else(|| Error::from_contract_error(DeCentPayError::EscrowNotFound as u32))?;
-
+    
     // Validate escrow is an open job
     if !escrow.is_open_job {
         return Err(Error::from_contract_error(DeCentPayError::NotOpenJob as u32));
@@ -43,6 +45,7 @@ pub fn apply_to_job(
     if has_applied(env, escrow_id, freelancer.clone()) {
         return Err(Error::from_contract_error(DeCentPayError::AlreadyApplied as u32));
     }
+    // env.events().publish((symbol_short!("log"), symbol_short!("check")), 0u32);
 
     // Find the first available slot and count existing applications
     env.storage()
@@ -61,13 +64,14 @@ pub fn apply_to_job(
             next_available_index = Some(app_index);
         }
     }
+    // env.events().publish((symbol_short!("log"), symbol_short!("loop")), application_count);
     
     // Check if we've reached max applications
     if application_count >= MAX_APPLICATIONS {
         return Err(Error::from_contract_error(DeCentPayError::TooManyApplications as u32));
     }
     
-    // Get the next available index (should always be Some at this point)
+    // Get the next available index
     let application_index = next_available_index
         .ok_or_else(|| Error::from_contract_error(DeCentPayError::TooManyApplications as u32))?;
 
