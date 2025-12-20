@@ -8,7 +8,19 @@ import {
   Spec as ContractSpec,
 } from "@stellar/stellar-sdk/contract";
 import type { u32, i128, Option } from "@stellar/stellar-sdk/contract";
-export * from "@stellar/stellar-sdk";
+export {
+  Address,
+  Asset,
+  Contract,
+  Keypair,
+  Networks,
+  Operation,
+  StrKey,
+  TransactionBuilder,
+  scValToNative,
+  nativeToScVal,
+  xdr,
+} from "@stellar/stellar-sdk";
 export * as contract from "@stellar/stellar-sdk/contract";
 export * as rpc from "@stellar/stellar-sdk/rpc";
 

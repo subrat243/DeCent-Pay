@@ -23,7 +23,7 @@ const queryClient = new QueryClient({
 
 createRoot(document.getElementById("root") as HTMLElement).render(
   <StrictMode>
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="decent-pay-theme">
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} storageKey="decent-pay-theme">
       <StellarNotificationProvider>
         <QueryClientProvider client={queryClient}>
           <WalletProvider>
