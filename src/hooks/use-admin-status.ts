@@ -93,7 +93,12 @@ export function useAdminStatus() {
       // User is admin if they are owner, arbiter, or have delegation
       setIsAdmin(ownerCheck || arbiterCheck || hasDelegationForUser);
     } catch (error) {
-      console.error("Error checking admin status:", error);
+      // Silently handle "Owner not found" errors - contract may not be initialized yet
+      if (error instanceof Error && error.message.includes("Owner not found")) {
+        // Don't log this error - it's expected when contract isn't initialized
+      } else {
+        console.error("Error checking admin status:", error);
+      }
       setIsAdmin(false);
       setIsOwner(false);
       setIsArbiter(false);

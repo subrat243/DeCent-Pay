@@ -35,23 +35,43 @@ export const signTransaction = async ({
     throw new Error("Wallet not connected");
   }
 
+  console.log("[signTransaction] About to request signature from wallet", {
+    walletId,
+    address,
+    networkPassphrase: network.networkPassphrase,
+  });
+
   // Set wallet if not already set
   wallet.setWallet(walletId);
 
   // Sign the transaction using the wallet utility
   // The wallet utility has a signTransaction method that works with all wallets
-  const signResult = await wallet.signTransaction(txXdr, {
-    networkPassphrase: network.networkPassphrase,
-    address,
-  });
+  try {
+    console.log("[signTransaction] Calling wallet.signTransaction...");
+    const signResult = await wallet.signTransaction(txXdr, {
+      networkPassphrase: network.networkPassphrase,
+      address,
+    });
+    console.log("[signTransaction] Wallet returned result:", {
+      hasSignedTxXdr: !!signResult?.signedTxXdr,
+    });
 
-  if (!signResult || !signResult.signedTxXdr) {
-    throw new Error(
-      "Transaction signing failed - no signed transaction received"
-    );
+    if (!signResult || !signResult.signedTxXdr) {
+      throw new Error(
+        "Transaction signing failed - no signed transaction received"
+      );
+    }
+
+    console.log("[signTransaction] Transaction signed successfully");
+    return signResult.signedTxXdr;
+  } catch (error: any) {
+    console.error("[signTransaction] Wallet signing failed:", error);
+    // Re-throw with more context
+    if (error.code === -4 || error.message?.includes("rejected")) {
+      throw new Error("You rejected the transaction in your wallet. Please try again and click 'Approve' to continue.");
+    }
+    throw error;
   }
-
-  return signResult.signedTxXdr;
 };
 
 /**

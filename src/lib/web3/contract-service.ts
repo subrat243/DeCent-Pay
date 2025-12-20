@@ -1776,7 +1776,13 @@ export class ContractService {
       // Ensure ownerAddress is a string
       return String(ownerAddress);
     } catch (error) {
-      console.error("Error getting owner:", error);
+      // Silently handle "Owner not found" - contract may not be initialized yet
+      // Only log other types of errors
+      if (error instanceof Error && error.message.includes("Owner not found")) {
+        // Don't log - this is expected when contract isn't initialized
+      } else {
+        console.error("Error getting owner:", error);
+      }
       throw error;
     }
   }
@@ -3190,22 +3196,92 @@ export class ContractService {
     proposed_timeline: number;
     freelancer: string;
   }): Promise<string> {
-    const { address } = useWalletStore.getState();
-    if (!address) {
-      throw new Error("Wallet not connected");
+    // Use the freelancer address from params - it's already the wallet address from the component
+    // Don't rely on useWalletStore which might be out of sync
+    if (!params.freelancer) {
+      throw new Error("Wallet address is required");
     }
 
-    const walletAddress = address;
+    const freelancerAddress = params.freelancer;
+
+    console.log(
+      "[applyToJob] Using freelancer address:",
+      freelancerAddress
+    );
 
     try {
-      const assembledTx = await this.client.apply_to_job({
-        escrow_id: params.escrow_id,
-        cover_letter: params.cover_letter,
-        proposed_timeline: params.proposed_timeline,
-        freelancer: params.freelancer,
+      // Build transaction manually with freelancer as source account
+      const { Contract, nativeToScVal } = await import("@stellar/stellar-sdk");
+      const { TransactionBuilder } = await import("@stellar/stellar-sdk");
+
+      const contract = new Contract(this.contractId);
+      const sourceAccount = await this.rpcServer.getAccount(freelancerAddress);
+
+      const tx = new TransactionBuilder(sourceAccount, {
+        fee: "100",
+        networkPassphrase: this.network.networkPassphrase,
+      })
+        .addOperation(
+          contract.call(
+            "apply_to_job",
+            nativeToScVal(params.escrow_id, { type: "u32" }),
+            nativeToScVal(params.cover_letter, { type: "string" }),
+            nativeToScVal(params.proposed_timeline, { type: "u32" }),
+            nativeToScVal(params.freelancer, { type: "address" })
+          )
+        )
+        .setTimeout(30)
+        .build();
+
+      console.log("[applyToJob] Transaction built, simulating...");
+
+      // Simulate to check for errors
+      const simulation = await this.rpcServer.simulateTransaction(tx);
+
+      console.log("[applyToJob] Simulation complete");
+
+      // Check if simulation failed
+      if ("errorResult" in simulation && simulation.errorResult) {
+        const errorValue =
+          (simulation.errorResult as any).value?.() || simulation.errorResult;
+        console.error("[applyToJob] Simulation failed:", errorValue);
+        throw new Error(
+          `Transaction simulation failed: ${errorValue.toString()}`
+        );
+      }
+
+      // Prepare transaction
+      const prepared = await this.rpcServer.prepareTransaction(tx);
+
+      console.log("[applyToJob] Signing transaction...");
+
+      // Sign the transaction normally - don't try to handle auth entries separately
+      // The contract uses require_auth_for_args(()) which doesn't work well with
+      // Freighter's auth entry signing, so we just sign the whole transaction
+      const signedTxXdr = await signTransaction({
+        unsignedTransaction: prepared.toXDR(),
+        address: freelancerAddress,
       });
 
-      return await this.sendTransactionWithAuth(assembledTx, walletAddress);
+      console.log("[applyToJob] Transaction signed, sending...");
+
+      const signedTransaction = TransactionBuilder.fromXDR(
+        signedTxXdr,
+        this.network.networkPassphrase
+      );
+
+      const sendResponse =
+        await this.rpcServer.sendTransaction(signedTransaction);
+
+      if (sendResponse.status === "ERROR") {
+        throw new Error("Transaction failed");
+      }
+
+      if (sendResponse.status === "PENDING" && sendResponse.hash) {
+        return await this.waitForConfirmation(sendResponse.hash);
+      }
+
+      return sendResponse.hash || "";
     } catch (error: any) {
       console.error("Error applying to job:", error);
       throw error;
