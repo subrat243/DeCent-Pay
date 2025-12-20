@@ -621,171 +621,19 @@ export function Web3Provider({ children }: { children: ReactNode }) {
           } else if (method === "approve_milestone" && args[0]) {
             assembledTx = await client.approve_milestone(args[0]);
           } else if (method === "apply_to_job" && args[0]) {
-            // Build transaction manually like create_escrow to ensure proper address conversion
-            const freelancerAddress =
-              args[0].freelancer || walletState.address || "";
-
-            if (!freelancerAddress) {
-              throw new Error("Freelancer address is required");
-            }
-
-            console.log(
-              "Building apply_to_job transaction manually with args:",
-              {
-                escrow_id: args[0].escrow_id,
-                cover_letter: args[0].cover_letter,
-                proposed_timeline: args[0].proposed_timeline,
-                freelancer: freelancerAddress,
-              }
-            );
-
-            const contract = new Contract(contractId);
-            const server = createRpcServer();
-            const sourceAccount = await server.getAccount(walletState.address!);
-
-            // Convert parameters to ScVal format - CRITICAL: convert address properly
-            const escrowIdScVal = nativeToScVal(args[0].escrow_id, {
-              type: "u32",
-            });
-            const coverLetterScVal = nativeToScVal(args[0].cover_letter, {
-              type: "string",
-            });
-            const proposedTimelineScVal = nativeToScVal(
-              args[0].proposed_timeline,
-              { type: "u32" }
-            );
-            const freelancerScVal = nativeToScVal(freelancerAddress, {
-              type: "address",
-            });
-
-            // Build transaction
-            const tx = new TransactionBuilder(sourceAccount, {
-              fee: "100",
-              networkPassphrase: network.networkPassphrase,
-            })
-              .addOperation(
-                contract.call(
-                  "apply_to_job",
-                  escrowIdScVal,
-                  coverLetterScVal,
-                  proposedTimelineScVal,
-                  freelancerScVal
-                )
-              )
-              .setTimeout(30)
-              .build();
-
-            // Simulate to check for errors and get auth entries
-            const simulation = await server.simulateTransaction(tx);
-
-            // Check for auth entries
-            const authEntries =
-              "auth" in simulation &&
-                simulation.auth &&
-                Array.isArray(simulation.auth)
-                ? simulation.auth
-                : [];
-
-            console.log("[apply_to_job] Simulation result:", {
-              hasErrorResult: "errorResult" in simulation,
-              errorResult: "errorResult" in simulation ? simulation.errorResult : null,
-              authEntriesCount: authEntries.length,
-              simulationStatus: (simulation as any).status,
-            });
-
-            // Check if simulation failed
-            if ("errorResult" in simulation && simulation.errorResult) {
-              const errorValue =
-                (simulation.errorResult as any).value?.() ||
-                simulation.errorResult;
-              throw new Error(
-                `Transaction simulation failed: ${errorValue.toString()}`
+            // Use the generated client to handle apply_to_job
+            // This automatically handles auth entry signing and transaction preparation
+            console.log("Applying to job with args:", args[0]);
+            console.log("Calling client.apply_to_job()...");
+            try {
+              assembledTx = await client.apply_to_job(args[0]);
+              console.log(
+                "client.apply_to_job() succeeded, assembledTx:",
+                assembledTx
               );
-            }
-
-            // Prepare transaction
-            console.log("[apply_to_job] Preparing transaction...");
-            const prepared = await server.prepareTransaction(tx);
-
-            // Handle auth entries if needed
-            if (authEntries.length > 0) {
-              console.log("[apply_to_job] Auth entries found, signing auth entries...", {
-                count: authEntries.length,
-                freelancerAddress,
-              });
-              const { signAuthEntry } = await import("@stellar/freighter-api");
-
-              const signedAuthEntries = await Promise.all(
-                authEntries.map(async (entry: any) => {
-                  const entryXdr = entry.toXDR("base64");
-                  console.log("[apply_to_job] Signing auth entry for address:", freelancerAddress);
-                  const signed = await signAuthEntry(entryXdr, {
-                    networkPassphrase: network.networkPassphrase,
-                    address: freelancerAddress,
-                  });
-                  console.log("[apply_to_job] Auth entry signed successfully");
-                  return (
-                    signed.signedAuthEntry ||
-                    (signed as any).signedAuthEntryXdr ||
-                    entryXdr
-                  );
-                })
-              );
-
-              console.log("[apply_to_job] All auth entries signed, rebuilding transaction...");
-              // Rebuild transaction with signed auth entries
-              const { xdr } = await import("@stellar/stellar-sdk");
-              const parsedSignedAuth = signedAuthEntries.map((signed: string) =>
-                xdr.SorobanAuthorizationEntry.fromXDR(signed, "base64")
-              );
-
-              const operations = prepared.operations;
-              if (operations && operations.length > 0) {
-                const op = operations[0];
-                if (op.type === "invokeHostFunction") {
-                  const invokeOp = op as any;
-                  const hostFn = invokeOp.function || invokeOp.hostFunction;
-                  const newOp = Operation.invokeHostFunction({
-                    function: hostFn as xdr.HostFunction,
-                    auth: parsedSignedAuth,
-                  } as any);
-
-                  // Get fresh account for rebuilding
-                  const freshAccount = await server.getAccount(
-                    walletState.address!
-                  );
-                  const newTx = new TransactionBuilder(freshAccount, {
-                    fee: prepared.fee,
-                    networkPassphrase: network.networkPassphrase,
-                  })
-                    .addOperation(newOp)
-                    .setTimeout(30)
-                    .build();
-
-                  const newPrepared = await server.prepareTransaction(newTx);
-                  console.log("[apply_to_job] Transaction rebuilt with signed auth entries");
-                  assembledTx = {
-                    toXDR: () => newPrepared.toXDR(),
-                    built: newPrepared,
-                  } as any;
-                } else {
-                  assembledTx = {
-                    toXDR: () => prepared.toXDR(),
-                    built: prepared,
-                  } as any;
-                }
-              } else {
-                assembledTx = {
-                  toXDR: () => prepared.toXDR(),
-                  built: prepared,
-                } as any;
-              }
-            } else {
-              console.log("[apply_to_job] No auth entries needed, using prepared transaction directly");
-              assembledTx = {
-                toXDR: () => prepared.toXDR(),
-                built: prepared,
-              } as any;
+            } catch (applyError: any) {
+              console.error("Error in client.apply_to_job():", applyError);
+              throw applyError;
             }
           } else if (method === "accept_freelancer" && args[0]) {
             assembledTx = await client.accept_freelancer(args[0]);

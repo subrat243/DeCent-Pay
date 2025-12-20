@@ -482,6 +482,27 @@ export class ContractService {
       const createdAt = getU32Value(getField("created_at"));
       const projectTitle = getValue(getField("project_title"));
       const projectDescription = getValue(getField("project_description"));
+      
+      // Extract is_open_job boolean
+      const isOpenJobField = getField("is_open_job");
+      let isOpenJob: boolean;
+      if (isOpenJobField !== undefined && isOpenJobField !== null) {
+        const isOpenJobValue = getValue(isOpenJobField);
+        // Handle various boolean representations
+        if (typeof isOpenJobValue === "boolean") {
+          isOpenJob = isOpenJobValue;
+        } else if (typeof isOpenJobValue === "number") {
+          isOpenJob = isOpenJobValue !== 0;
+        } else if (typeof isOpenJobValue === "string") {
+          isOpenJob = isOpenJobValue.toLowerCase() === "true" || isOpenJobValue === "1";
+        } else {
+          // Fallback: check if beneficiary is null (which means is_open_job should be true)
+          isOpenJob = beneficiary === null || beneficiary === undefined || beneficiary === "" || beneficiary === "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF";
+        }
+      } else {
+        // Field not present, fallback to legacy logic
+        isOpenJob = beneficiary === null || beneficiary === undefined || beneficiary === "" || beneficiary === "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF";
+      }
 
       // Convert status enum to number
       let statusNumber = 0;
@@ -607,6 +628,7 @@ export class ContractService {
         milestones: [],
         project_title: projectTitle || "",
         project_description: projectDescription || "",
+        is_open_job: isOpenJob,
       };
     } catch (error) {
       console.error("Error getting escrow:", error);

@@ -265,6 +265,14 @@ export default function JobsPage() {
             // Use the contract's is_open_job field directly if available
             const zeroAddress =
               "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF";
+            
+            console.log(`[fetchOpenJobs] Escrow ${i} data:`, {
+              is_open_job: escrowData.is_open_job,
+              is_open_job_type: typeof escrowData.is_open_job,
+              freelancer: escrowData.freelancer,
+              status: escrowData.status,
+            });
+            
             const isOpenJob = 
               escrowData.is_open_job !== undefined && escrowData.is_open_job !== null
                 ? escrowData.is_open_job
@@ -272,6 +280,8 @@ export default function JobsPage() {
                   !escrowData.freelancer ||
                   escrowData.freelancer === zeroAddress ||
                   escrowData.freelancer === "";
+            
+            console.log(`[fetchOpenJobs] Escrow ${i} isOpenJob computed as:`, isOpenJob);
 
             if (isOpenJob) {
               // Check if current user is the job creator (should not be able to apply to own job)
@@ -499,12 +509,21 @@ export default function JobsPage() {
       
       // Validate job state before applying (case-insensitive status check)
       const jobStatus = job.status?.toLowerCase();
+      console.log("[handleApply] Job validation:", {
+        jobStatus,
+        isOpenJob: job.is_open_job,
+        payer: job.payer,
+        walletAddress: wallet.address,
+      });
+      
       if (jobStatus !== "pending" && jobStatus !== "open") {
         throw new Error(`Cannot apply to job with status: ${job.status}`);
       }
       
-      if (!job.is_open_job) {
-        throw new Error("This job is not accepting applications");
+      // Allow application if job status is pending, even if is_open_job flag is not set
+      // The contract will validate if it's actually open
+      if (job.is_open_job === false) {
+        console.warn("[handleApply] Job is_open_job is false, but attempting anyway - contract will validate");
       }
       
       if (job.payer === wallet.address) {
@@ -553,14 +572,23 @@ export default function JobsPage() {
       await countOngoingProjects();
     } catch (error) {
       let errorMessage = "Could not submit your application. Please try again.";
+      let showDetailedError = false;
       
       if (error instanceof Error) {
+        console.error("Full error details:", error);
+        
         if (error.message.includes("rejected")) {
           errorMessage = "Transaction was rejected. Please try again.";
-        } else if (error.message.includes("Transaction failed")) {
-          errorMessage = error.message;
+          showDetailedError = false;
+        } else if (error.message.includes("auth")) {
+          errorMessage = "Failed to authorize transaction. Please check your wallet and try again.";
+          showDetailedError = true;
+        } else if (error.message.includes("simulation failed")) {
+          errorMessage = "Transaction would fail. Please check your application details.";
+          showDetailedError = true;
         } else if (error.message) {
           errorMessage = error.message;
+          showDetailedError = true;
         }
       }
       
@@ -570,7 +598,9 @@ export default function JobsPage() {
         variant: "destructive",
       });
       
-      console.error("handleApply error:", error);
+      if (showDetailedError) {
+        console.error("handleApply error:", error);
+      }
     } finally {
       setApplying(false);
     }
