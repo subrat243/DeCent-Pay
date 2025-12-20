@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAdminStatus } from "@/hooks/use-admin-status";
-import { useJobCreatorStatus } from "@/hooks/use-job-creator-status";
 
 export function Navbar() {
   const location = useLocation();
@@ -16,7 +15,6 @@ export function Navbar() {
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   const { isAdmin } = useAdminStatus();
-  const { isJobCreator } = useJobCreatorStatus();
 
   const isActive = (path: string) => {
     if (path === "/") {

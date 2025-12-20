@@ -17,7 +17,6 @@ import {
   scValToNative,
   TransactionBuilder,
   Operation,
-  xdr,
 } from "@stellar/stellar-sdk";
 import {
   wallet,
