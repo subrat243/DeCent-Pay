@@ -1,7 +1,7 @@
 use crate::admin;
 use crate::escrow_core;
 use crate::storage_types::{
-    DataKey, EscrowData, EscrowStatus, DeCent-PayError, INSTANCE_BUMP_AMOUNT, INSTANCE_LIFETIME_THRESHOLD,
+    DataKey, EscrowData, EscrowStatus, DeCentPayError, INSTANCE_BUMP_AMOUNT, INSTANCE_LIFETIME_THRESHOLD,
 };
 use soroban_sdk::{token, Address, Env, String, Vec, Error};
 
@@ -24,34 +24,34 @@ pub fn create_escrow(
 
     // Check if job creation is paused
     if admin::is_job_creation_paused(env) {
-        return Err(Error::from_contract_error(DeCent-PayError::JobCreationPaused as u32));
+        return Err(Error::from_contract_error(DeCentPayError::JobCreationPaused as u32));
     }
 
     // Validate parameters
     if duration < 3600 || duration > 31536000 {
         // 1 hour to 365 days
-        return Err(Error::from_contract_error(DeCent-PayError::InvalidDuration as u32));
+        return Err(Error::from_contract_error(DeCentPayError::InvalidDuration as u32));
     }
 
     if milestone_amounts.len() != milestone_descriptions.len() {
-        return Err(Error::from_contract_error(DeCent-PayError::MilestoneCountMismatch as u32));
+        return Err(Error::from_contract_error(DeCentPayError::MilestoneCountMismatch as u32));
     }
 
     if milestone_amounts.len() > 20 {
-        return Err(Error::from_contract_error(DeCent-PayError::TooManyMilestones as u32));
+        return Err(Error::from_contract_error(DeCentPayError::TooManyMilestones as u32));
     }
 
     if arbiters.len() > 5 {
-        return Err(Error::from_contract_error(DeCent-PayError::TooManyArbiters as u32));
+        return Err(Error::from_contract_error(DeCentPayError::TooManyArbiters as u32));
     }
 
     if required_confirmations > arbiters.len() as u32 {
-        return Err(Error::from_contract_error(DeCent-PayError::InvalidConfirmations as u32));
+        return Err(Error::from_contract_error(DeCentPayError::InvalidConfirmations as u32));
     }
 
     // Check token whitelist
     if !escrow_core::is_whitelisted_token(env, token.clone()) {
-        return Err(Error::from_contract_error(DeCent-PayError::TokenNotWhitelisted as u32));
+        return Err(Error::from_contract_error(DeCentPayError::TokenNotWhitelisted as u32));
     }
 
     // Calculate platform fee

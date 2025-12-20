@@ -1,6 +1,6 @@
 use crate::escrow_core;
 use crate::storage_types::{
-    DataKey, EscrowStatus, MilestoneStatus, Milestone, DeCent-PayError, INSTANCE_BUMP_AMOUNT, INSTANCE_LIFETIME_THRESHOLD,
+    DataKey, EscrowStatus, MilestoneStatus, Milestone, DeCentPayError, INSTANCE_BUMP_AMOUNT, INSTANCE_LIFETIME_THRESHOLD,
 };
 use soroban_sdk::{token, Address, Env, String, Vec, Error};
 
@@ -15,18 +15,18 @@ pub fn start_work(env: &Env, escrow_id: u32, beneficiary: Address) -> Result<(),
 
     escrow_core::require_valid_escrow(env, escrow_id)?;
     let mut escrow = escrow_core::get_escrow(env, escrow_id)
-        .ok_or_else(|| Error::from_contract_error(DeCent-PayError::EscrowNotFound as u32))?;
+        .ok_or_else(|| Error::from_contract_error(DeCentPayError::EscrowNotFound as u32))?;
 
     if escrow.beneficiary != Some(beneficiary.clone()) {
-        return Err(Error::from_contract_error(DeCent-PayError::OnlyBeneficiary as u32));
+        return Err(Error::from_contract_error(DeCentPayError::OnlyBeneficiary as u32));
     }
 
     if escrow.status != EscrowStatus::Pending {
-        return Err(Error::from_contract_error(DeCent-PayError::InvalidEscrowStatus as u32));
+        return Err(Error::from_contract_error(DeCentPayError::InvalidEscrowStatus as u32));
     }
 
     if escrow.work_started {
-        return Err(Error::from_contract_error(DeCent-PayError::WorkAlreadyStarted as u32));
+        return Err(Error::from_contract_error(DeCentPayError::WorkAlreadyStarted as u32));
     }
 
     escrow.work_started = true;
@@ -66,18 +66,18 @@ pub fn submit_milestone(
 
     escrow_core::require_valid_escrow(env, escrow_id)?;
     let escrow = escrow_core::get_escrow(env, escrow_id)
-        .ok_or_else(|| Error::from_contract_error(DeCent-PayError::EscrowNotFound as u32))?;
+        .ok_or_else(|| Error::from_contract_error(DeCentPayError::EscrowNotFound as u32))?;
 
     if escrow.beneficiary != Some(beneficiary.clone()) {
-        return Err(Error::from_contract_error(DeCent-PayError::OnlyBeneficiary as u32));
+        return Err(Error::from_contract_error(DeCentPayError::OnlyBeneficiary as u32));
     }
 
     if escrow.status != EscrowStatus::InProgress {
-        return Err(Error::from_contract_error(DeCent-PayError::InvalidEscrowStatus as u32));
+        return Err(Error::from_contract_error(DeCentPayError::InvalidEscrowStatus as u32));
     }
 
     if milestone_index >= escrow.milestone_count {
-        return Err(Error::from_contract_error(DeCent-PayError::InvalidMilestone as u32));
+        return Err(Error::from_contract_error(DeCentPayError::InvalidMilestone as u32));
     }
 
     // Get milestone
@@ -85,10 +85,10 @@ pub fn submit_milestone(
         .storage()
         .instance()
         .get::<DataKey, crate::storage_types::Milestone>(&DataKey::Milestone(escrow_id, milestone_index))
-        .ok_or_else(|| Error::from_contract_error(DeCent-PayError::InvalidMilestone as u32))?;
+        .ok_or_else(|| Error::from_contract_error(DeCentPayError::InvalidMilestone as u32))?;
 
     if milestone.status != MilestoneStatus::NotStarted {
-        return Err(Error::from_contract_error(DeCent-PayError::MilestoneAlreadyProcessed as u32));
+        return Err(Error::from_contract_error(DeCentPayError::MilestoneAlreadyProcessed as u32));
     }
 
     milestone.status = MilestoneStatus::Submitted;
@@ -111,18 +111,18 @@ pub fn approve_milestone(env: &Env, escrow_id: u32, milestone_index: u32, deposi
 
     escrow_core::require_valid_escrow(env, escrow_id)?;
     let mut escrow = escrow_core::get_escrow(env, escrow_id)
-        .ok_or_else(|| Error::from_contract_error(DeCent-PayError::EscrowNotFound as u32))?;
+        .ok_or_else(|| Error::from_contract_error(DeCentPayError::EscrowNotFound as u32))?;
 
     if escrow.depositor != depositor {
-        return Err(Error::from_contract_error(DeCent-PayError::OnlyDepositor as u32));
+        return Err(Error::from_contract_error(DeCentPayError::OnlyDepositor as u32));
     }
 
     if escrow.status != EscrowStatus::InProgress {
-        return Err(Error::from_contract_error(DeCent-PayError::EscrowNotActive as u32));
+        return Err(Error::from_contract_error(DeCentPayError::EscrowNotActive as u32));
     }
 
     if milestone_index >= escrow.milestone_count {
-        return Err(Error::from_contract_error(DeCent-PayError::InvalidMilestone as u32));
+        return Err(Error::from_contract_error(DeCentPayError::InvalidMilestone as u32));
     }
 
     // Get milestone
@@ -130,10 +130,10 @@ pub fn approve_milestone(env: &Env, escrow_id: u32, milestone_index: u32, deposi
         .storage()
         .instance()
         .get::<DataKey, crate::storage_types::Milestone>(&DataKey::Milestone(escrow_id, milestone_index))
-        .ok_or_else(|| Error::from_contract_error(DeCent-PayError::InvalidMilestone as u32))?;
+        .ok_or_else(|| Error::from_contract_error(DeCentPayError::InvalidMilestone as u32))?;
 
     if milestone.status != MilestoneStatus::Submitted {
-        return Err(Error::from_contract_error(DeCent-PayError::MilestoneNotSubmitted as u32));
+        return Err(Error::from_contract_error(DeCentPayError::MilestoneNotSubmitted as u32));
     }
 
     let amount = milestone.amount;
@@ -248,18 +248,18 @@ pub fn reject_milestone(
 
     escrow_core::require_valid_escrow(env, escrow_id)?;
     let escrow = escrow_core::get_escrow(env, escrow_id)
-        .ok_or_else(|| Error::from_contract_error(DeCent-PayError::EscrowNotFound as u32))?;
+        .ok_or_else(|| Error::from_contract_error(DeCentPayError::EscrowNotFound as u32))?;
 
     if escrow.depositor != depositor {
-        return Err(Error::from_contract_error(DeCent-PayError::OnlyDepositor as u32));
+        return Err(Error::from_contract_error(DeCentPayError::OnlyDepositor as u32));
     }
 
     if escrow.status != EscrowStatus::InProgress {
-        return Err(Error::from_contract_error(DeCent-PayError::EscrowNotActive as u32));
+        return Err(Error::from_contract_error(DeCentPayError::EscrowNotActive as u32));
     }
 
     if milestone_index >= escrow.milestone_count {
-        return Err(Error::from_contract_error(DeCent-PayError::InvalidMilestone as u32));
+        return Err(Error::from_contract_error(DeCentPayError::InvalidMilestone as u32));
     }
 
     // Get milestone
@@ -267,10 +267,10 @@ pub fn reject_milestone(
         .storage()
         .instance()
         .get::<DataKey, crate::storage_types::Milestone>(&DataKey::Milestone(escrow_id, milestone_index))
-        .ok_or_else(|| Error::from_contract_error(DeCent-PayError::InvalidMilestone as u32))?;
+        .ok_or_else(|| Error::from_contract_error(DeCentPayError::InvalidMilestone as u32))?;
 
     if milestone.status != MilestoneStatus::Submitted {
-        return Err(Error::from_contract_error(DeCent-PayError::MilestoneNotSubmitted as u32));
+        return Err(Error::from_contract_error(DeCentPayError::MilestoneNotSubmitted as u32));
     }
 
     // Update milestone status to Rejected
@@ -299,18 +299,18 @@ pub fn resubmit_milestone(
 
     escrow_core::require_valid_escrow(env, escrow_id)?;
     let escrow = escrow_core::get_escrow(env, escrow_id)
-        .ok_or_else(|| Error::from_contract_error(DeCent-PayError::EscrowNotFound as u32))?;
+        .ok_or_else(|| Error::from_contract_error(DeCentPayError::EscrowNotFound as u32))?;
 
     if escrow.beneficiary != Some(beneficiary.clone()) {
-        return Err(Error::from_contract_error(DeCent-PayError::OnlyBeneficiary as u32));
+        return Err(Error::from_contract_error(DeCentPayError::OnlyBeneficiary as u32));
     }
 
     if escrow.status != EscrowStatus::InProgress {
-        return Err(Error::from_contract_error(DeCent-PayError::InvalidEscrowStatus as u32));
+        return Err(Error::from_contract_error(DeCentPayError::InvalidEscrowStatus as u32));
     }
 
     if milestone_index >= escrow.milestone_count {
-        return Err(Error::from_contract_error(DeCent-PayError::InvalidMilestone as u32));
+        return Err(Error::from_contract_error(DeCentPayError::InvalidMilestone as u32));
     }
 
     // Get milestone
@@ -318,11 +318,11 @@ pub fn resubmit_milestone(
         .storage()
         .instance()
         .get::<DataKey, crate::storage_types::Milestone>(&DataKey::Milestone(escrow_id, milestone_index))
-        .ok_or_else(|| Error::from_contract_error(DeCent-PayError::InvalidMilestone as u32))?;
+        .ok_or_else(|| Error::from_contract_error(DeCentPayError::InvalidMilestone as u32))?;
 
     // Only allow resubmission if milestone is Rejected
     if milestone.status != MilestoneStatus::Rejected {
-        return Err(Error::from_contract_error(DeCent-PayError::MilestoneAlreadyProcessed as u32));
+        return Err(Error::from_contract_error(DeCentPayError::MilestoneAlreadyProcessed as u32));
     }
 
     // Update milestone status to Submitted and update description
@@ -354,22 +354,22 @@ pub fn dispute_milestone(
 
     escrow_core::require_valid_escrow(env, escrow_id)?;
     let mut escrow = escrow_core::get_escrow(env, escrow_id)
-        .ok_or_else(|| Error::from_contract_error(DeCent-PayError::EscrowNotFound as u32))?;
+        .ok_or_else(|| Error::from_contract_error(DeCentPayError::EscrowNotFound as u32))?;
 
     // Check if disputer is either depositor or beneficiary
     let is_depositor = escrow.depositor == disputer;
     let is_beneficiary = escrow.beneficiary == Some(disputer.clone());
     
     if !is_depositor && !is_beneficiary {
-        return Err(Error::from_contract_error(DeCent-PayError::OnlyDepositor as u32)); // Use OnlyDepositor as generic error for unauthorized
+        return Err(Error::from_contract_error(DeCentPayError::OnlyDepositor as u32)); // Use OnlyDepositor as generic error for unauthorized
     }
 
     if escrow.status != EscrowStatus::InProgress {
-        return Err(Error::from_contract_error(DeCent-PayError::EscrowNotActive as u32));
+        return Err(Error::from_contract_error(DeCentPayError::EscrowNotActive as u32));
     }
 
     if milestone_index >= escrow.milestone_count {
-        return Err(Error::from_contract_error(DeCent-PayError::InvalidMilestone as u32));
+        return Err(Error::from_contract_error(DeCentPayError::InvalidMilestone as u32));
     }
 
     // Get milestone
@@ -377,11 +377,11 @@ pub fn dispute_milestone(
         .storage()
         .instance()
         .get::<DataKey, crate::storage_types::Milestone>(&DataKey::Milestone(escrow_id, milestone_index))
-        .ok_or_else(|| Error::from_contract_error(DeCent-PayError::InvalidMilestone as u32))?;
+        .ok_or_else(|| Error::from_contract_error(DeCentPayError::InvalidMilestone as u32))?;
 
     // Can dispute submitted or approved milestones
     if milestone.status != MilestoneStatus::Submitted && milestone.status != MilestoneStatus::Approved {
-        return Err(Error::from_contract_error(DeCent-PayError::MilestoneNotSubmitted as u32));
+        return Err(Error::from_contract_error(DeCentPayError::MilestoneNotSubmitted as u32));
     }
 
     // Update milestone status to Disputed

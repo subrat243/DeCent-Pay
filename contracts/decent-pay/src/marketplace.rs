@@ -1,6 +1,6 @@
 use crate::admin;
 use crate::escrow_core;
-use crate::storage_types::{Application, DataKey, EscrowStatus, DeCent-PayError, INSTANCE_BUMP_AMOUNT, INSTANCE_LIFETIME_THRESHOLD};
+use crate::storage_types::{Application, DataKey, EscrowStatus, DeCentPayError, INSTANCE_BUMP_AMOUNT, INSTANCE_LIFETIME_THRESHOLD};
 use soroban_sdk::{Env, Address, String, Vec, Error};
 
 const MAX_APPLICATIONS: u32 = 50;
@@ -18,30 +18,30 @@ pub fn apply_to_job(
 
     // Check if job creation is paused
     if admin::is_job_creation_paused(env) {
-        return Err(Error::from_contract_error(DeCent-PayError::JobCreationPaused as u32));
+        return Err(Error::from_contract_error(DeCentPayError::JobCreationPaused as u32));
     }
 
     // Validate escrow
     escrow_core::require_valid_escrow(env, escrow_id)?;
     let escrow = escrow_core::get_escrow(env, escrow_id)
-        .ok_or_else(|| Error::from_contract_error(DeCent-PayError::EscrowNotFound as u32))?;
+        .ok_or_else(|| Error::from_contract_error(DeCentPayError::EscrowNotFound as u32))?;
 
     // Validate escrow is an open job
     if !escrow.is_open_job {
-        return Err(Error::from_contract_error(DeCent-PayError::NotOpenJob as u32));
+        return Err(Error::from_contract_error(DeCentPayError::NotOpenJob as u32));
     }
 
     if escrow.status != EscrowStatus::Pending {
-        return Err(Error::from_contract_error(DeCent-PayError::JobClosed as u32));
+        return Err(Error::from_contract_error(DeCentPayError::JobClosed as u32));
     }
 
     if escrow.depositor == freelancer {
-        return Err(Error::from_contract_error(DeCent-PayError::CannotApplyToOwnJob as u32));
+        return Err(Error::from_contract_error(DeCentPayError::CannotApplyToOwnJob as u32));
     }
 
     // Check if already applied
     if has_applied(env, escrow_id, freelancer.clone()) {
-        return Err(Error::from_contract_error(DeCent-PayError::AlreadyApplied as u32));
+        return Err(Error::from_contract_error(DeCentPayError::AlreadyApplied as u32));
     }
 
     // Find the first available slot and count existing applications
@@ -64,12 +64,12 @@ pub fn apply_to_job(
     
     // Check if we've reached max applications
     if application_count >= MAX_APPLICATIONS {
-        return Err(Error::from_contract_error(DeCent-PayError::TooManyApplications as u32));
+        return Err(Error::from_contract_error(DeCentPayError::TooManyApplications as u32));
     }
     
     // Get the next available index (should always be Some at this point)
     let application_index = next_available_index
-        .ok_or_else(|| Error::from_contract_error(DeCent-PayError::TooManyApplications as u32))?;
+        .ok_or_else(|| Error::from_contract_error(DeCentPayError::TooManyApplications as u32))?;
 
     // Create application
     let application = Application {
@@ -92,18 +92,18 @@ pub fn accept_freelancer(env: &Env, escrow_id: u32, depositor: Address, freelanc
 
     escrow_core::require_valid_escrow(env, escrow_id)?;
     let mut escrow = escrow_core::get_escrow(env, escrow_id)
-        .ok_or_else(|| Error::from_contract_error(DeCent-PayError::EscrowNotFound as u32))?;
+        .ok_or_else(|| Error::from_contract_error(DeCentPayError::EscrowNotFound as u32))?;
 
     if escrow.depositor != depositor {
-        return Err(Error::from_contract_error(DeCent-PayError::OnlyDepositor as u32));
+        return Err(Error::from_contract_error(DeCentPayError::OnlyDepositor as u32));
     }
 
     if !escrow.is_open_job {
-        return Err(Error::from_contract_error(DeCent-PayError::NotOpenJob as u32));
+        return Err(Error::from_contract_error(DeCentPayError::NotOpenJob as u32));
     }
 
     if escrow.status != EscrowStatus::Pending {
-        return Err(Error::from_contract_error(DeCent-PayError::JobClosed as u32));
+        return Err(Error::from_contract_error(DeCentPayError::JobClosed as u32));
     }
 
     // TODO: Check if freelancer applied

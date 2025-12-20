@@ -1,5 +1,5 @@
 use crate::escrow_core;
-use crate::storage_types::{DataKey, EscrowStatus, DeCent-PayError, INSTANCE_BUMP_AMOUNT, INSTANCE_LIFETIME_THRESHOLD};
+use crate::storage_types::{DataKey, EscrowStatus, DeCentPayError, INSTANCE_BUMP_AMOUNT, INSTANCE_LIFETIME_THRESHOLD};
 use soroban_sdk::{token, Address, Env, Error, String};
 
 const EMERGENCY_REFUND_DELAY: u32 = 2592000; // 30 days in seconds
@@ -9,28 +9,28 @@ pub fn refund_escrow(env: &Env, escrow_id: u32, depositor: Address) -> Result<()
 
     escrow_core::require_valid_escrow(env, escrow_id)?;
     let mut escrow = escrow_core::get_escrow(env, escrow_id)
-        .ok_or_else(|| Error::from_contract_error(DeCent-PayError::EscrowNotFound as u32))?;
+        .ok_or_else(|| Error::from_contract_error(DeCentPayError::EscrowNotFound as u32))?;
 
     if escrow.depositor != depositor {
-        return Err(Error::from_contract_error(DeCent-PayError::OnlyDepositor as u32));
+        return Err(Error::from_contract_error(DeCentPayError::OnlyDepositor as u32));
     }
 
     if escrow.status != EscrowStatus::Pending {
-        return Err(Error::from_contract_error(DeCent-PayError::InvalidEscrowStatus as u32));
+        return Err(Error::from_contract_error(DeCentPayError::InvalidEscrowStatus as u32));
     }
 
     if escrow.work_started {
-        return Err(Error::from_contract_error(DeCent-PayError::WorkAlreadyStarted as u32));
+        return Err(Error::from_contract_error(DeCentPayError::WorkAlreadyStarted as u32));
     }
 
     let current_ledger = env.ledger().sequence();
     if current_ledger >= escrow.deadline {
-        return Err(Error::from_contract_error(DeCent-PayError::DeadlineNotPassed as u32));
+        return Err(Error::from_contract_error(DeCentPayError::DeadlineNotPassed as u32));
     }
 
     let refund_amount = escrow.total_amount - escrow.paid_amount;
     if refund_amount <= 0 {
-        return Err(Error::from_contract_error(DeCent-PayError::NothingToRefund as u32));
+        return Err(Error::from_contract_error(DeCentPayError::NothingToRefund as u32));
     }
 
     escrow.status = EscrowStatus::Refunded;
@@ -77,24 +77,24 @@ pub fn emergency_refund_after_deadline(env: &Env, escrow_id: u32, depositor: Add
 
     escrow_core::require_valid_escrow(env, escrow_id)?;
     let mut escrow = escrow_core::get_escrow(env, escrow_id)
-        .ok_or_else(|| Error::from_contract_error(DeCent-PayError::EscrowNotFound as u32))?;
+        .ok_or_else(|| Error::from_contract_error(DeCentPayError::EscrowNotFound as u32))?;
 
     if escrow.depositor != depositor {
-        return Err(Error::from_contract_error(DeCent-PayError::OnlyDepositor as u32));
+        return Err(Error::from_contract_error(DeCentPayError::OnlyDepositor as u32));
     }
 
     let current_ledger = env.ledger().sequence();
     if current_ledger <= escrow.deadline + EMERGENCY_REFUND_DELAY {
-        return Err(Error::from_contract_error(DeCent-PayError::EmergencyPeriodNotReached as u32));
+        return Err(Error::from_contract_error(DeCentPayError::EmergencyPeriodNotReached as u32));
     }
 
     if escrow.status == EscrowStatus::Released || escrow.status == EscrowStatus::Refunded {
-        return Err(Error::from_contract_error(DeCent-PayError::CannotRefund as u32));
+        return Err(Error::from_contract_error(DeCentPayError::CannotRefund as u32));
     }
 
     let refund_amount = escrow.total_amount - escrow.paid_amount;
     if refund_amount <= 0 {
-        return Err(Error::from_contract_error(DeCent-PayError::NothingToRefund as u32));
+        return Err(Error::from_contract_error(DeCentPayError::NothingToRefund as u32));
     }
 
     escrow.status = EscrowStatus::Expired;
@@ -133,19 +133,19 @@ pub fn extend_deadline(env: &Env, escrow_id: u32, depositor: Address, extra_seco
 
     if extra_seconds == 0 || extra_seconds > 2592000 {
         // Max 30 days
-        return Err(Error::from_contract_error(DeCent-PayError::InvalidExtension as u32));
+        return Err(Error::from_contract_error(DeCentPayError::InvalidExtension as u32));
     }
 
     escrow_core::require_valid_escrow(env, escrow_id)?;
     let mut escrow = escrow_core::get_escrow(env, escrow_id)
-        .ok_or_else(|| Error::from_contract_error(DeCent-PayError::EscrowNotFound as u32))?;
+        .ok_or_else(|| Error::from_contract_error(DeCentPayError::EscrowNotFound as u32))?;
 
     if escrow.depositor != depositor {
-        return Err(Error::from_contract_error(DeCent-PayError::OnlyDepositor as u32));
+        return Err(Error::from_contract_error(DeCentPayError::OnlyDepositor as u32));
     }
 
     if escrow.status != EscrowStatus::InProgress && escrow.status != EscrowStatus::Pending {
-        return Err(Error::from_contract_error(DeCent-PayError::CannotExtend as u32));
+        return Err(Error::from_contract_error(DeCentPayError::CannotExtend as u32));
     }
 
     escrow.deadline += extra_seconds as u32;

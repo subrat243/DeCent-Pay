@@ -7,7 +7,7 @@ pub const INSTANCE_LIFETIME_THRESHOLD: u32 = INSTANCE_BUMP_AMOUNT - DAY_IN_LEDGE
 
 // Error codes for proper error handling
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum DeCent-PayError {
+pub enum DeCentPayError {
     // Admin errors (1000-1099)
     AlreadyInitialized = 1000,
     FeeTooHigh = 1001,
@@ -69,8 +69,8 @@ pub enum DeCent-PayError {
     OnlyDepositorCanRate = 1803,
 }
 
-impl From<DeCent-PayError> for Error {
-    fn from(e: DeCent-PayError) -> Self {
+impl From<DeCentPayError> for Error {
+    fn from(e: DeCentPayError) -> Self {
         Error::from_contract_error(e as u32)
     }
 }

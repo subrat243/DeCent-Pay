@@ -1,6 +1,6 @@
 use crate::admin;
 use crate::storage_types::{
-    DataKey, EscrowData, DeCent-PayError, INSTANCE_BUMP_AMOUNT, INSTANCE_LIFETIME_THRESHOLD,
+    DataKey, EscrowData, DeCentPayError, INSTANCE_BUMP_AMOUNT, INSTANCE_LIFETIME_THRESHOLD,
 };
 use soroban_sdk::{Address, Env, Vec, Error};
 
@@ -62,7 +62,7 @@ pub fn get_escrow(env: &Env, escrow_id: u32) -> Option<EscrowData> {
 
 pub fn require_valid_escrow(env: &Env, escrow_id: u32) -> Result<(), Error> {
     if escrow_id == 0 || get_escrow(env, escrow_id).is_none() {
-    return Err(Error::from_contract_error(DeCent-PayError::EscrowNotFound as u32));
+    return Err(Error::from_contract_error(DeCentPayError::EscrowNotFound as u32));
     }
     Ok(())
 }

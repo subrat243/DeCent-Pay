@@ -1,5 +1,5 @@
 [package]
-name = "DeCent-Pay"
+name = "de_cent_pay"
 description = "DeCent-Pay - Decentralized Escrow & Freelance Marketplace on Soroban"
 edition.workspace = true
 license.workspace = true

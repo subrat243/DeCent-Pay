@@ -1,5 +1,5 @@
 use crate::storage_types::{
-    DataKey, EscrowStatus, Rating, Badge, DeCent-PayError, INSTANCE_BUMP_AMOUNT, INSTANCE_LIFETIME_THRESHOLD,
+    DataKey, EscrowStatus, Rating, Badge, DeCentPayError, INSTANCE_BUMP_AMOUNT, INSTANCE_LIFETIME_THRESHOLD,
 };
 use crate::escrow_core;
 use soroban_sdk::{Address, Env, String, Error};
@@ -17,33 +17,33 @@ pub fn submit_rating(
 
     // Validate rating (1-5)
     if rating < 1 || rating > 5 {
-        return Err(Error::from_contract_error(DeCent-PayError::InvalidRating as u32));
+        return Err(Error::from_contract_error(DeCentPayError::InvalidRating as u32));
     }
 
     // Validate escrow exists
     escrow_core::require_valid_escrow(env, escrow_id)?;
     let escrow = escrow_core::get_escrow(env, escrow_id)
-        .ok_or_else(|| Error::from_contract_error(DeCent-PayError::EscrowNotFound as u32))?;
+        .ok_or_else(|| Error::from_contract_error(DeCentPayError::EscrowNotFound as u32))?;
 
     // Check if client is the depositor
     if escrow.depositor != client {
-        return Err(Error::from_contract_error(DeCent-PayError::OnlyDepositorCanRate as u32));
+        return Err(Error::from_contract_error(DeCentPayError::OnlyDepositorCanRate as u32));
     }
 
     // Check if escrow is completed (Released status)
     if escrow.status != EscrowStatus::Released {
-        return Err(Error::from_contract_error(DeCent-PayError::EscrowNotCompleted as u32));
+        return Err(Error::from_contract_error(DeCentPayError::EscrowNotCompleted as u32));
     }
 
     // Check if rating already exists
     let rating_key = DataKey::Rating(escrow_id);
     if env.storage().instance().has(&rating_key) {
-        return Err(Error::from_contract_error(DeCent-PayError::RatingAlreadySubmitted as u32));
+        return Err(Error::from_contract_error(DeCentPayError::RatingAlreadySubmitted as u32));
     }
 
     // Get freelancer address
     let freelancer = escrow.beneficiary
-        .ok_or_else(|| Error::from_contract_error(DeCent-PayError::EscrowNotFound as u32))?;
+        .ok_or_else(|| Error::from_contract_error(DeCentPayError::EscrowNotFound as u32))?;
 
     // Create rating
     let rating_data = Rating {
