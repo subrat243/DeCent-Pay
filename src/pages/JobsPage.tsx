@@ -483,20 +483,24 @@ export default function JobsPage() {
       }
 
       // Call the smart contract applyToJob function
-      // The contract expects: apply_to_job(escrow_id, cover_letter, proposed_timeline, freelancer)
-      // The generated client expects an object with these fields
-      // Pass freelancer address - contract will require auth from it
+      // We pass the freelancer address, but the contract uses env.invoker() to verify it
       const applyParams = {
         escrow_id: Number.parseInt(job.id, 10),
         cover_letter: coverLetter,
         proposed_timeline: Number.parseInt(proposedTimeline, 10),
-        freelancer: wallet.address || "",
+        freelancer: wallet.address,
       };
       
       console.log("[handleApply] Submitting application with params:", applyParams);
+      console.log("[handleApply] Freelancer will be: ", wallet.address);
       
-      if (!applyParams.freelancer) {
+      if (!wallet.address) {
         throw new Error("Wallet address is required to apply for a job");
+      }
+      
+      // Validate wallet address is a valid Stellar address
+      if (!wallet.address.startsWith("G") || wallet.address.length !== 56) {
+        throw new Error(`Invalid wallet address format: ${wallet.address}`);
       }
       
       if (!applyParams.cover_letter) {
@@ -577,15 +581,18 @@ export default function JobsPage() {
       if (error instanceof Error) {
         console.error("Full error details:", error);
         
-        if (error.message.includes("rejected")) {
-          errorMessage = "Transaction was rejected. Please try again.";
+        if (error.message.includes("rejected") || error.message.includes("denied")) {
+          errorMessage = "You rejected the transaction in your wallet. Please try again.";
           showDetailedError = false;
         } else if (error.message.includes("auth")) {
-          errorMessage = "Failed to authorize transaction. Please check your wallet and try again.";
+          errorMessage = "Failed to authorize transaction. Please check your wallet has sufficient permissions.";
           showDetailedError = true;
         } else if (error.message.includes("simulation failed")) {
-          errorMessage = "Transaction would fail. Please check your application details.";
+          errorMessage = "Transaction would fail. Please check your application details and try again.";
           showDetailedError = true;
+        } else if (error.message.includes("required")) {
+          errorMessage = error.message;
+          showDetailedError = false;
         } else if (error.message) {
           errorMessage = error.message;
           showDetailedError = true;
@@ -599,7 +606,7 @@ export default function JobsPage() {
       });
       
       if (showDetailedError) {
-        console.error("handleApply error:", error);
+        console.error("handleApply error details:", error);
       }
     } finally {
       setApplying(false);

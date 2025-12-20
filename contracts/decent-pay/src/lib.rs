@@ -130,7 +130,7 @@ impl DeCentPay {
         proposed_timeline: u32,
         freelancer: Address,
     ) -> Result<(), Error> {
-        marketplace::apply_to_job(&env, escrow_id, freelancer, cover_letter, proposed_timeline)
+        marketplace::apply_to_job(&env, escrow_id, cover_letter, proposed_timeline, freelancer)
     }
 
     /// Accept a freelancer for an open job

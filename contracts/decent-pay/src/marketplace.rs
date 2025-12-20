@@ -8,12 +8,11 @@ const MAX_APPLICATIONS: u32 = 50;
 pub fn apply_to_job(
     env: &Env,
     escrow_id: u32,
-    freelancer: Address,
     cover_letter: String,
     proposed_timeline: u32,
+    freelancer: Address,
 ) -> Result<(), Error> {
-    // Require auth from the freelancer address
-    // The freelancer must sign the transaction
+    // Verify that the freelancer is authorized
     freelancer.require_auth();
 
     // Check if job creation is paused

@@ -625,14 +625,45 @@ export function Web3Provider({ children }: { children: ReactNode }) {
             // This automatically handles auth entry signing and transaction preparation
             console.log("Applying to job with args:", args[0]);
             console.log("Calling client.apply_to_job()...");
+            
+            // Validate parameters before calling client
+            const applyParams = args[0];
+            console.log("[apply_to_job] Validating parameters:", {
+              escrow_id: applyParams.escrow_id,
+              escrow_id_type: typeof applyParams.escrow_id,
+              cover_letter: applyParams.cover_letter?.substring(0, 50) + "...",
+              cover_letter_type: typeof applyParams.cover_letter,
+              proposed_timeline: applyParams.proposed_timeline,
+              proposed_timeline_type: typeof applyParams.proposed_timeline,
+              freelancer: applyParams.freelancer,
+              freelancer_type: typeof applyParams.freelancer,
+            });
+            
             try {
-              assembledTx = await client.apply_to_job(args[0]);
+              const assembledTxResult = await client.apply_to_job(applyParams);
               console.log(
-                "client.apply_to_job() succeeded, assembledTx:",
-                assembledTx
+                "[apply_to_job] client.apply_to_job() succeeded"
               );
+              
+              // Log details about the assembled transaction
+              console.log("[apply_to_job] AssembledTransaction details:", {
+                hasToXDR: typeof assembledTxResult.toXDR === "function",
+                hasResult: assembledTxResult.result !== undefined,
+                resultType: typeof assembledTxResult.result,
+              });
+              
+              // Check if there's any auth info we need to handle
+              if ((assembledTxResult as any).authEntry) {
+                console.log("[apply_to_job] Auth entry found in AssembledTransaction");
+              }
+              
+              assembledTx = assembledTxResult;
             } catch (applyError: any) {
-              console.error("Error in client.apply_to_job():", applyError);
+              console.error("[apply_to_job] Error in client.apply_to_job():", {
+                message: applyError.message,
+                code: applyError.code,
+                errorDetails: applyError,
+              });
               throw applyError;
             }
           } else if (method === "accept_freelancer" && args[0]) {
@@ -1104,12 +1135,14 @@ export function Web3Provider({ children }: { children: ReactNode }) {
             // Get the transaction XDR
             const xdr = assembledTx.toXDR();
             console.log(
-              "Transaction XDR created, requesting wallet signature..."
+              "[apply_to_job] Transaction XDR created, requesting wallet signature..."
             );
+            console.log("[apply_to_job] XDR length:", xdr.length);
+            console.log("[apply_to_job] XDR (first 200 chars):", xdr.substring(0, 200));
 
             // Sign the transaction - this will trigger the wallet popup
             console.log(
-              "Calling signTransaction - wallet popup should appear..."
+              "[apply_to_job] Calling signTransaction - wallet popup should appear..."
             );
             const signResult = await signTx(xdr, {
               address: walletState.address,
