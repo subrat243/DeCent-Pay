@@ -44,16 +44,18 @@ export const signTransaction = async ({
   // Set wallet if not already set
   wallet.setWallet(walletId);
 
-  // Sign the transaction using the wallet utility
-  // The wallet utility has a signTransaction method that works with all wallets
+  // Use wallet kit for signing
   try {
     console.log("[signTransaction] Calling wallet.signTransaction...");
     const signResult = await wallet.signTransaction(txXdr, {
       networkPassphrase: network.networkPassphrase,
       address,
     });
+
     console.log("[signTransaction] Wallet returned result:", {
       hasSignedTxXdr: !!signResult?.signedTxXdr,
+      resultType: typeof signResult,
+      resultKeys: Object.keys(signResult || {}),
     });
 
     if (!signResult || !signResult.signedTxXdr) {
@@ -66,10 +68,28 @@ export const signTransaction = async ({
     return signResult.signedTxXdr;
   } catch (error: any) {
     console.error("[signTransaction] Wallet signing failed:", error);
+    console.error("[signTransaction] Error details:", {
+      code: error.code,
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+      fullError: JSON.stringify(error, null, 2),
+    });
+
     // Re-throw with more context
-    if (error.code === -4 || error.message?.includes("rejected")) {
+    if (error.code === -4) {
+      // Code -4 can mean either user rejection OR authorization failure
+      // Check if the error message gives us more details
+      if (error.message?.toLowerCase().includes("auth")) {
+        throw new Error(`Authorization failed: ${error.message}. The contract may have rejected the transaction.`);
+      }
       throw new Error("You rejected the transaction in your wallet. Please try again and click 'Approve' to continue.");
     }
+
+    if (error.message?.includes("rejected")) {
+      throw new Error("You rejected the transaction in your wallet. Please try again and click 'Approve' to continue.");
+    }
+
     throw error;
   }
 };

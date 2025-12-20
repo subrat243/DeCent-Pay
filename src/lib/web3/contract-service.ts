@@ -3239,6 +3239,12 @@ export class ContractService {
       const simulation = await this.rpcServer.simulateTransaction(tx);
 
       console.log("[applyToJob] Simulation complete");
+      console.log("[applyToJob] Simulation result:", {
+        hasError: "errorResult" in simulation && !!simulation.errorResult,
+        hasResult: "result" in simulation && !!(simulation as any).result,
+        hasReturnValue: "returnValue" in simulation && !!simulation.returnValue,
+        transactionData: (simulation as any).transactionData ? "present" : "missing",
+      });
 
       // Check if simulation failed
       if ("errorResult" in simulation && simulation.errorResult) {
@@ -3264,11 +3270,27 @@ export class ContractService {
       });
 
       console.log("[applyToJob] Transaction signed, sending...");
+      console.log("[applyToJob] Signed XDR type:", typeof signedTxXdr);
+      console.log("[applyToJob] Signed XDR length:", signedTxXdr?.length);
+      console.log("[applyToJob] Signed XDR preview:", signedTxXdr?.substring(0, 100));
 
-      const signedTransaction = TransactionBuilder.fromXDR(
-        signedTxXdr,
-        this.network.networkPassphrase
-      );
+      // Validate the signed XDR before parsing
+      if (!signedTxXdr || typeof signedTxXdr !== 'string') {
+        throw new Error("Invalid signed transaction XDR received from wallet");
+      }
+
+      let signedTransaction;
+      try {
+        signedTransaction = TransactionBuilder.fromXDR(
+          signedTxXdr,
+          this.network.networkPassphrase
+        );
+        console.log("[applyToJob] Successfully parsed signed transaction");
+      } catch (xdrError: any) {
+        console.error("[applyToJob] Failed to parse signed XDR:", xdrError);
+        console.error("[applyToJob] Problematic XDR:", signedTxXdr);
+        throw new Error(`Failed to parse signed transaction: ${xdrError.message}`);
+      }
 
       const sendResponse =
         await this.rpcServer.sendTransaction(signedTransaction);
