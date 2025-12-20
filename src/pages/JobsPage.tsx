@@ -261,14 +261,17 @@ export default function JobsPage() {
               continue;
             }
 
-            // Check if this is an open job (beneficiary is null or zero address)
-            // For Stellar, null beneficiary means it's an open job
+            // Check if this is an open job
+            // Use the contract's is_open_job field directly if available
             const zeroAddress =
               "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF";
-            const isOpenJob =
-              !escrowData.freelancer ||
-              escrowData.freelancer === zeroAddress ||
-              escrowData.freelancer === "";
+            const isOpenJob = 
+              escrowData.is_open_job !== undefined && escrowData.is_open_job !== null
+                ? escrowData.is_open_job
+                : // Fallback: check if freelancer is null/zero (legacy logic)
+                  !escrowData.freelancer ||
+                  escrowData.freelancer === zeroAddress ||
+                  escrowData.freelancer === "";
 
             if (isOpenJob) {
               // Check if current user is the job creator (should not be able to apply to own job)
@@ -334,7 +337,7 @@ export default function JobsPage() {
                 milestones: [], // Would need to fetch milestones separately
                 projectTitle: escrowData.project_title || "", // projectTitle (from blockchain)
                 projectDescription: escrowData.project_description || "", // projectDescription (from blockchain)
-                isOpenJob: true,
+                isOpenJob: isOpenJob, // Use the actual is_open_job field from contract
                 applications: [], // Would need to fetch applications separately
                 applicationCount: applicationCount, // Add real application count
                 isJobCreator: !!isJobCreator, // Add flag to track if current user is the job creator (from blockchain)
@@ -473,12 +476,44 @@ export default function JobsPage() {
       // The contract expects: apply_to_job(escrow_id, cover_letter, proposed_timeline, freelancer)
       // The generated client expects an object with these fields
       // Pass freelancer address - contract will require auth from it
-      await contract.send("apply_to_job", {
+      const applyParams = {
         escrow_id: Number.parseInt(job.id, 10),
         cover_letter: coverLetter,
         proposed_timeline: Number.parseInt(proposedTimeline, 10),
         freelancer: wallet.address || "",
-      });
+      };
+      
+      console.log("[handleApply] Submitting application with params:", applyParams);
+      
+      if (!applyParams.freelancer) {
+        throw new Error("Wallet address is required to apply for a job");
+      }
+      
+      if (!applyParams.cover_letter) {
+        throw new Error("Cover letter is required");
+      }
+      
+      if (applyParams.proposed_timeline <= 0) {
+        throw new Error("Proposed timeline must be greater than 0");
+      }
+      
+      // Validate job state before applying (case-insensitive status check)
+      const jobStatus = job.status?.toLowerCase();
+      if (jobStatus !== "pending" && jobStatus !== "open") {
+        throw new Error(`Cannot apply to job with status: ${job.status}`);
+      }
+      
+      if (!job.is_open_job) {
+        throw new Error("This job is not accepting applications");
+      }
+      
+      if (job.payer === wallet.address) {
+        throw new Error("You cannot apply to your own job");
+      }
+      
+      console.log("[handleApply] Job validation passed, sending transaction...");
+      
+      await contract.send("apply_to_job", applyParams);
 
       // Update hasApplied state to prevent double application
       setHasApplied((prev) => ({
@@ -517,11 +552,25 @@ export default function JobsPage() {
       // Refresh the ongoing projects count
       await countOngoingProjects();
     } catch (error) {
+      let errorMessage = "Could not submit your application. Please try again.";
+      
+      if (error instanceof Error) {
+        if (error.message.includes("rejected")) {
+          errorMessage = "Transaction was rejected. Please try again.";
+        } else if (error.message.includes("Transaction failed")) {
+          errorMessage = error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: "Application Failed",
-        description: "Could not submit your application. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
+      
+      console.error("handleApply error:", error);
     } finally {
       setApplying(false);
     }

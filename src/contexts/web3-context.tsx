@@ -686,6 +686,13 @@ export function Web3Provider({ children }: { children: ReactNode }) {
                 ? simulation.auth
                 : [];
 
+            console.log("[apply_to_job] Simulation result:", {
+              hasErrorResult: "errorResult" in simulation,
+              errorResult: "errorResult" in simulation ? simulation.errorResult : null,
+              authEntriesCount: authEntries.length,
+              simulationStatus: (simulation as any).status,
+            });
+
             // Check if simulation failed
             if ("errorResult" in simulation && simulation.errorResult) {
               const errorValue =
@@ -697,20 +704,26 @@ export function Web3Provider({ children }: { children: ReactNode }) {
             }
 
             // Prepare transaction
+            console.log("[apply_to_job] Preparing transaction...");
             const prepared = await server.prepareTransaction(tx);
 
             // Handle auth entries if needed
             if (authEntries.length > 0) {
-              console.log("Auth entries found, signing auth entries...");
+              console.log("[apply_to_job] Auth entries found, signing auth entries...", {
+                count: authEntries.length,
+                freelancerAddress,
+              });
               const { signAuthEntry } = await import("@stellar/freighter-api");
 
               const signedAuthEntries = await Promise.all(
                 authEntries.map(async (entry: any) => {
                   const entryXdr = entry.toXDR("base64");
+                  console.log("[apply_to_job] Signing auth entry for address:", freelancerAddress);
                   const signed = await signAuthEntry(entryXdr, {
                     networkPassphrase: network.networkPassphrase,
                     address: freelancerAddress,
                   });
+                  console.log("[apply_to_job] Auth entry signed successfully");
                   return (
                     signed.signedAuthEntry ||
                     (signed as any).signedAuthEntryXdr ||
@@ -719,6 +732,7 @@ export function Web3Provider({ children }: { children: ReactNode }) {
                 })
               );
 
+              console.log("[apply_to_job] All auth entries signed, rebuilding transaction...");
               // Rebuild transaction with signed auth entries
               const { xdr } = await import("@stellar/stellar-sdk");
               const parsedSignedAuth = signedAuthEntries.map((signed: string) =>
@@ -749,6 +763,7 @@ export function Web3Provider({ children }: { children: ReactNode }) {
                     .build();
 
                   const newPrepared = await server.prepareTransaction(newTx);
+                  console.log("[apply_to_job] Transaction rebuilt with signed auth entries");
                   assembledTx = {
                     toXDR: () => newPrepared.toXDR(),
                     built: newPrepared,
@@ -766,6 +781,7 @@ export function Web3Provider({ children }: { children: ReactNode }) {
                 } as any;
               }
             } else {
+              console.log("[apply_to_job] No auth entries needed, using prepared transaction directly");
               assembledTx = {
                 toXDR: () => prepared.toXDR(),
                 built: prepared,
@@ -1212,6 +1228,13 @@ export function Web3Provider({ children }: { children: ReactNode }) {
           });
 
           try {
+            // Log the method call parameters for debugging
+            console.log(`[Web3] Calling contract method: ${method}`, {
+              method,
+              args,
+              address: walletState.address,
+            });
+            
             // Use signTransaction from WalletProvider if available, otherwise fallback to wallet instance
             const signTx = walletSignTransaction || wallet.signTransaction;
             console.log("About to sign transaction...", {
@@ -1459,17 +1482,37 @@ export function Web3Provider({ children }: { children: ReactNode }) {
             console.log("Transaction hash:", txHash);
             return txHash;
           } catch (signError: any) {
-            console.error("Error during transaction signing:", signError);
-            if (
-              signError.message?.includes("User rejected") ||
-              signError.message?.includes("rejected")
-            ) {
+            const errorMessage = signError.message || String(signError);
+            console.error("Error during transaction signing:", {
+              message: errorMessage,
+              code: signError.code,
+              originalError: signError,
+              methodCalled: method,
+              args: args,
+            });
+            
+            // Check for user rejection in various forms
+            const isUserRejection = 
+              errorMessage.toLowerCase().includes("user rejected") ||
+              errorMessage.toLowerCase().includes("rejected") ||
+              errorMessage.toLowerCase().includes("denied") ||
+              errorMessage.toLowerCase().includes("user denied") ||
+              signError.code === 4001 || // EIP-1193 user rejection code
+              signError.code === -4;      // Soroban/Stellar wallet rejection code
+            
+            if (isUserRejection) {
               throw new Error("Transaction was rejected by user");
             }
+            
             throw signError;
           }
         } catch (error: any) {
-          console.error(`Error sending ${method}:`, error);
+          const errorMsg = error.message || String(error);
+          console.error(`Error sending ${method}:`, {
+            method,
+            message: errorMsg,
+            error: error,
+          });
           throw error;
         }
       },
