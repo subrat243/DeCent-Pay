@@ -249,7 +249,7 @@ export default function FreelancerPage() {
           const isBeneficiary =
             escrowData.freelancer &&
             escrowData.freelancer.toLowerCase().trim() ===
-              wallet.address.toLowerCase().trim();
+            wallet.address.toLowerCase().trim();
 
           console.log(
             `[FreelancerPage] Escrow ${i} freelancer: ${escrowData.freelancer}, isBeneficiary: ${isBeneficiary}`
@@ -361,16 +361,16 @@ export default function FreelancerPage() {
                 const submittedAt =
                   submittedAtLedger > 0
                     ? Date.now() -
-                      (currentLedger - submittedAtLedger) *
-                        SECONDS_PER_LEDGER *
-                        1000
+                    (currentLedger - submittedAtLedger) *
+                    SECONDS_PER_LEDGER *
+                    1000
                     : undefined;
                 const approvedAt =
                   approvedAtLedger > 0
                     ? Date.now() -
-                      (currentLedger - approvedAtLedger) *
-                        SECONDS_PER_LEDGER *
-                        1000
+                    (currentLedger - approvedAtLedger) *
+                    SECONDS_PER_LEDGER *
+                    1000
                     : undefined;
 
                 // Track milestone states for submission prevention
@@ -719,9 +719,8 @@ export default function FreelancerPage() {
         } else {
           toast({
             title: "Wrong milestone sequence",
-            description: `You can only submit milestone ${
-              expectedMilestoneIndex + 1
-            } at this time. Please complete the previous milestones first.`,
+            description: `You can only submit milestone ${expectedMilestoneIndex + 1
+              } at this time. Please complete the previous milestones first.`,
             variant: "destructive",
           });
         }
@@ -741,15 +740,14 @@ export default function FreelancerPage() {
         if (milestone && milestone[2] && Number(milestone[2]) > 0) {
           toast({
             title: "Milestone already processed",
-            description: `This milestone has already been ${
-              Number(milestone[2]) === 2 ? "approved" : "submitted"
-            } and cannot be submitted again`,
+            description: `This milestone has already been ${Number(milestone[2]) === 2 ? "approved" : "submitted"
+              } and cannot be submitted again`,
             variant: "destructive",
           });
           return;
         }
       }
-    } catch (error) {}
+    } catch (error) { }
 
     // Validate milestone description from input field
     if (!description?.trim()) {
@@ -1250,16 +1248,16 @@ export default function FreelancerPage() {
                                 (escrow.projectDescription
                                   ? escrow.projectDescription.length > 50
                                     ? escrow.projectDescription.substring(
-                                        0,
-                                        50
-                                      ) + "..."
+                                      0,
+                                      50
+                                    ) + "..."
                                     : escrow.projectDescription
                                   : `Project #${escrow.id}`)}
                             </CardTitle>
                             <CardDescription className="mt-1 text-gray-600 dark:text-gray-400">
                               {escrow.projectDescription &&
-                              (!escrow.projectTitle ||
-                                escrow.projectDescription.length > 50)
+                                (!escrow.projectTitle ||
+                                  escrow.projectDescription.length > 50)
                                 ? escrow.projectDescription
                                 : `Project ID: #${escrow.id}`}
                             </CardDescription>
@@ -1401,11 +1399,10 @@ export default function FreelancerPage() {
                                     {Array.from({ length: 5 }, (_, i) => (
                                       <Star
                                         key={i}
-                                        className={`h-4 w-4 ${
-                                          i < escrowRatings[escrow.id].rating
+                                        className={`h-4 w-4 ${i < escrowRatings[escrow.id].rating
                                             ? "fill-yellow-400 text-yellow-400"
                                             : "text-gray-300"
-                                        }`}
+                                          }`}
                                       />
                                     ))}
                                     <span className="ml-1">
@@ -1453,15 +1450,16 @@ export default function FreelancerPage() {
                                     // For subsequent milestones, check if the previous one is approved
                                     const previousMilestone =
                                       escrow.milestones[index - 1];
-                                    const previousMilestoneKey = `${escrow.id}-${
-                                      index - 1
-                                    }`;
+                                    const previousMilestoneKey = `${escrow.id}-${index - 1
+                                      }`;
 
                                     // Check if previous milestone is approved
                                     const isPreviousApproved =
                                       previousMilestone &&
-                                      (previousMilestone.status ===
+                                      (previousMilestone.status?.toLowerCase() ===
                                         "approved" ||
+                                        previousMilestone.status?.toLowerCase() ===
+                                        "released" ||
                                         approvedMilestones.has(
                                           previousMilestoneKey
                                         ));
@@ -1504,8 +1502,7 @@ export default function FreelancerPage() {
                                 return (
                                   <div
                                     key={index}
-                                    className={`p-4 rounded-lg border-2 ${
-                                      isApproved
+                                    className={`p-4 rounded-lg border-2 ${isApproved
                                         ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
                                         : isSubmitted
                                           ? "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800"
@@ -1514,7 +1511,7 @@ export default function FreelancerPage() {
                                             : isBlocked
                                               ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
                                               : "bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700"
-                                    }`}
+                                      }`}
                                   >
                                     <div className="flex items-center justify-between mb-2">
                                       <span className="font-medium text-sm text-gray-900 dark:text-gray-100">
@@ -1547,7 +1544,7 @@ export default function FreelancerPage() {
                                         "To be defined"
                                       ) &&
                                       milestone.description !==
-                                        `Milestone ${index + 1}` && (
+                                      `Milestone ${index + 1}` && (
                                         <div className="text-xs text-gray-600 dark:text-gray-400 mb-2">
                                           <span className="font-medium">
                                             Requirements:
@@ -1555,9 +1552,9 @@ export default function FreelancerPage() {
                                           <p className="mt-1 line-clamp-2">
                                             {milestone.description.length > 80
                                               ? milestone.description.substring(
-                                                  0,
-                                                  80
-                                                ) + "..."
+                                                0,
+                                                80
+                                              ) + "..."
                                               : milestone.description}
                                           </p>
                                         </div>
@@ -1757,9 +1754,8 @@ export default function FreelancerPage() {
                                   // For subsequent milestones, check if the previous one is approved
                                   const previousMilestone =
                                     escrow.milestones[i - 1];
-                                  const previousMilestoneKey = `${escrow.id}-${
-                                    i - 1
-                                  }`;
+                                  const previousMilestoneKey = `${escrow.id}-${i - 1
+                                    }`;
 
                                   // Check if previous milestone is approved
                                   const isPreviousApproved =
@@ -1870,7 +1866,7 @@ export default function FreelancerPage() {
                                       "To be defined"
                                     ) &&
                                     currentMilestone.description !==
-                                      `Milestone ${currentMilestoneIndex + 1}` && (
+                                    `Milestone ${currentMilestoneIndex + 1}` && (
                                       <div className="mb-3 p-3 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
                                         <div className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-1">
                                           Client Requirements:
@@ -1891,7 +1887,7 @@ export default function FreelancerPage() {
                                         <Textarea
                                           value={
                                             milestoneDescriptions[
-                                              milestoneKey
+                                            milestoneKey
                                             ] || ""
                                           }
                                           onChange={(e) =>
@@ -1920,14 +1916,14 @@ export default function FreelancerPage() {
                                             }
                                             disabled={
                                               submittingMilestone ===
-                                                milestoneKey ||
+                                              milestoneKey ||
                                               !milestoneDescriptions[
                                                 milestoneKey
                                               ]?.trim()
                                             }
                                           >
                                             {submittingMilestone ===
-                                            milestoneKey
+                                              milestoneKey
                                               ? "Submitting..."
                                               : "Submit Milestone"}
                                           </Button>

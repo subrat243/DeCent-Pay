@@ -11,7 +11,8 @@ import {
   createApplicationNotification,
 } from "@/contexts/notification-context";
 import type { Escrow, Application } from "@/lib/web3/types";
-import { Briefcase, MessageSquare } from "lucide-react";
+import { Briefcase, MessageSquare, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { ApprovalsHeader } from "@/components/approvals/approvals-header";
 import { ApprovalsStats } from "@/components/approvals/approvals-stats";
 import { JobCard } from "@/components/approvals/job-card";
@@ -48,6 +49,7 @@ export default function ApprovalsPage() {
   }, [selectedFreelancer]);
   const [approving, setApproving] = useState(false);
   const [, setIsApproving] = useState(false); // Used in handlers
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const getStatusFromNumber = (
     status: number
@@ -121,7 +123,7 @@ export default function ApprovalsPage() {
             wallet.address &&
             escrow.creator &&
             escrow.creator.toLowerCase().trim() ===
-              wallet.address.toLowerCase().trim();
+            wallet.address.toLowerCase().trim();
 
           console.log(
             `[ApprovalsPage] Escrow ${i} creator: ${escrow.creator}, isMyJob: ${isMyJob}`
@@ -132,7 +134,7 @@ export default function ApprovalsPage() {
             const isOpenJob =
               !escrow.freelancer ||
               escrow.freelancer ===
-                "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF" ||
+              "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF" ||
               escrow.freelancer === "";
 
             console.log(
@@ -422,18 +424,24 @@ export default function ApprovalsPage() {
     <div className="container mx-auto px-4 py-8">
       <ApprovalsHeader />
 
-      {/* Manual Refresh Button */}
+      {/* Refresh Button */}
       <div className="mb-6 flex justify-end">
-        <button
+        <Button
+          variant="outline"
+          size="default"
           onClick={async () => {
-            setLoading(true);
+            setIsRefreshing(true);
             await fetchMyJobs();
-            setLoading(false);
+            setIsRefreshing(false);
           }}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+          disabled={isRefreshing}
+          className="flex items-center gap-2"
         >
-          🔄 Refresh Jobs
-        </button>
+          <RefreshCw
+            className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+          />
+          Refresh
+        </Button>
       </div>
 
       <ApprovalsStats jobs={jobs} />
@@ -533,11 +541,11 @@ export default function ApprovalsPage() {
                               )}
                               {(application.averageRating !== undefined ||
                                 application.ratingCount !== undefined) && (
-                                <RatingDisplay
-                                  averageRating={application.averageRating}
-                                  ratingCount={application.ratingCount}
-                                />
-                              )}
+                                  <RatingDisplay
+                                    averageRating={application.averageRating}
+                                    ratingCount={application.ratingCount}
+                                  />
+                                )}
                             </div>
                           </div>
                           <div className="flex gap-2">
@@ -631,9 +639,8 @@ export default function ApprovalsPage() {
                     onMouseUp={(e) => {
                       e.stopPropagation();
                     }}
-                    className={`px-4 py-2 rounded-md text-white cursor-pointer bg-green-600 hover:bg-green-700 ${
-                      approving ? "opacity-75" : ""
-                    }`}
+                    className={`px-4 py-2 rounded-md text-white cursor-pointer bg-green-600 hover:bg-green-700 ${approving ? "opacity-75" : ""
+                      }`}
                     disabled={false}
                     style={{
                       pointerEvents: "auto",

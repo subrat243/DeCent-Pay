@@ -6,10 +6,8 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useFreelancerStatus } from "@/hooks/use-freelancer-status";
 import { useAdminStatus } from "@/hooks/use-admin-status";
 import { useJobCreatorStatus } from "@/hooks/use-job-creator-status";
-import { usePendingApprovals } from "@/hooks/use-pending-approvals";
 
 export function Navbar() {
   const location = useLocation();
@@ -17,10 +15,8 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
-  const { isFreelancer } = useFreelancerStatus();
   const { isAdmin } = useAdminStatus();
   const { isJobCreator } = useJobCreatorStatus();
-  const { hasPendingApprovals } = usePendingApprovals();
 
   const isActive = (path: string) => {
     if (path === "/") {
@@ -116,28 +112,24 @@ export function Navbar() {
               Dashboard
             </Link>
 
-            {isJobCreator && hasPendingApprovals && (
-              <Link
-                to="/approvals"
-                className={`text-sm font-medium transition-colors whitespace-nowrap px-3 py-2 rounded-md ${isActive("/approvals")
-                  ? "text-primary bg-primary/10"
-                  : "hover:text-primary hover:bg-primary/5"
-                  }`}
-              >
-                Approvals
-              </Link>
-            )}
-            {isFreelancer && (
-              <Link
-                to="/freelancer"
-                className={`text-sm font-medium transition-colors whitespace-nowrap px-3 py-2 rounded-md ${isActive("/freelancer")
-                  ? "text-primary bg-primary/10"
-                  : "hover:text-primary hover:bg-primary/5"
-                  }`}
-              >
-                Freelancer
-              </Link>
-            )}
+            <Link
+              to="/approvals"
+              className={`text-sm font-medium transition-colors whitespace-nowrap px-3 py-2 rounded-md ${isActive("/approvals")
+                ? "text-primary bg-primary/10"
+                : "hover:text-primary hover:bg-primary/5"
+                }`}
+            >
+              Approvals
+            </Link>
+            <Link
+              to="/freelancer"
+              className={`text-sm font-medium transition-colors whitespace-nowrap px-3 py-2 rounded-md ${isActive("/freelancer")
+                ? "text-primary bg-primary/10"
+                : "hover:text-primary hover:bg-primary/5"
+                }`}
+            >
+              My Projects
+            </Link>
             {isAdmin && (
               <Link
                 to="/admin"
@@ -236,30 +228,26 @@ export function Navbar() {
                 >
                   Dashboard
                 </Link>
-                {isJobCreator && hasPendingApprovals && (
-                  <Link
-                    to="/approvals"
-                    className={`text-sm font-medium transition-colors py-2 ${isActive("/approvals")
-                      ? "text-primary bg-primary/10 px-3 py-2 rounded-md"
-                      : "hover:text-primary"
-                      }`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Approvals
-                  </Link>
-                )}
-                {isFreelancer && (
-                  <Link
-                    to="/freelancer"
-                    className={`text-sm font-medium transition-colors py-2 ${isActive("/freelancer")
-                      ? "text-primary bg-primary/10 px-3 py-2 rounded-md"
-                      : "hover:text-primary"
-                      }`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Freelancer
-                  </Link>
-                )}
+                <Link
+                  to="/approvals"
+                  className={`text-sm font-medium transition-colors py-2 ${isActive("/approvals")
+                    ? "text-primary bg-primary/10 px-3 py-2 rounded-md"
+                    : "hover:text-primary"
+                    }`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Approvals
+                </Link>
+                <Link
+                  to="/freelancer"
+                  className={`text-sm font-medium transition-colors py-2 ${isActive("/freelancer")
+                    ? "text-primary bg-primary/10 px-3 py-2 rounded-md"
+                    : "hover:text-primary"
+                    }`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  My Projects
+                </Link>
                 {isAdmin && (
                   <Link
                     to="/admin"
