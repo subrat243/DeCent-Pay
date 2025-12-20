@@ -265,22 +265,22 @@ export default function JobsPage() {
             // Use the contract's is_open_job field directly if available
             const zeroAddress =
               "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF";
-            
+
             console.log(`[fetchOpenJobs] Escrow ${i} data:`, {
               is_open_job: escrowData.is_open_job,
               is_open_job_type: typeof escrowData.is_open_job,
               freelancer: escrowData.freelancer,
               status: escrowData.status,
             });
-            
-            const isOpenJob = 
+
+            const isOpenJob =
               escrowData.is_open_job !== undefined && escrowData.is_open_job !== null
                 ? escrowData.is_open_job
                 : // Fallback: check if freelancer is null/zero (legacy logic)
-                  !escrowData.freelancer ||
-                  escrowData.freelancer === zeroAddress ||
-                  escrowData.freelancer === "";
-            
+                !escrowData.freelancer ||
+                escrowData.freelancer === zeroAddress ||
+                escrowData.freelancer === "";
+
             console.log(`[fetchOpenJobs] Escrow ${i} isOpenJob computed as:`, isOpenJob);
 
             if (isOpenJob) {
@@ -488,55 +488,55 @@ export default function JobsPage() {
         escrow_id: Number.parseInt(job.id, 10),
         cover_letter: coverLetter,
         proposed_timeline: Number.parseInt(proposedTimeline, 10),
-        freelancer: wallet.address,
+        freelancer: wallet.address!,  // Safe to use ! because we validate it's not null below
       };
-      
+
       console.log("[handleApply] Submitting application with params:", applyParams);
       console.log("[handleApply] Freelancer will be: ", wallet.address);
-      
+
       if (!wallet.address) {
         throw new Error("Wallet address is required to apply for a job");
       }
-      
+
       // Validate wallet address is a valid Stellar address
       if (!wallet.address.startsWith("G") || wallet.address.length !== 56) {
         throw new Error(`Invalid wallet address format: ${wallet.address}`);
       }
-      
+
       if (!applyParams.cover_letter) {
         throw new Error("Cover letter is required");
       }
-      
+
       if (applyParams.proposed_timeline <= 0) {
         throw new Error("Proposed timeline must be greater than 0");
       }
-      
+
       // Validate job state before applying (case-insensitive status check)
       const jobStatus = job.status?.toLowerCase();
       console.log("[handleApply] Job validation:", {
         jobStatus,
-        isOpenJob: job.is_open_job,
+        isOpenJob: job.isOpenJob,
         payer: job.payer,
         walletAddress: wallet.address,
       });
-      
+
       if (jobStatus !== "pending" && jobStatus !== "open") {
         throw new Error(`Cannot apply to job with status: ${job.status}`);
       }
-      
-      // Allow application if job status is pending, even if is_open_job flag is not set
+
+      // Allow application if job status is pending, even if isOpenJob flag is not set
       // The contract will validate if it's actually open
-      if (job.is_open_job === false) {
-        console.warn("[handleApply] Job is_open_job is false, but attempting anyway - contract will validate");
+      if (job.isOpenJob === false) {
+        console.warn("[handleApply] Job isOpenJob is false, but attempting anyway - contract will validate");
       }
-      
+
       if (job.payer === wallet.address) {
         throw new Error("You cannot apply to your own job");
       }
-      
-      console.log("[handleApply] Job validation passed, sending transaction...");
-      
-      await contract.send("apply_to_job", applyParams);
+
+      console.log("[handleApply] Job validation passed, sending transaction using contractService...");
+
+      await contractService.applyToJob(applyParams);
 
       // Update hasApplied state to prevent double application
       setHasApplied((prev) => ({
@@ -577,10 +577,10 @@ export default function JobsPage() {
     } catch (error) {
       let errorMessage = "Could not submit your application. Please try again.";
       let showDetailedError = false;
-      
+
       if (error instanceof Error) {
         console.error("Full error details:", error);
-        
+
         if (error.message.includes("rejected") || error.message.includes("denied")) {
           errorMessage = "You rejected the transaction in your wallet. Please try again.";
           showDetailedError = false;
@@ -598,13 +598,13 @@ export default function JobsPage() {
           showDetailedError = true;
         }
       }
-      
+
       toast({
         title: "Application Failed",
         description: errorMessage,
         variant: "destructive",
       });
-      
+
       if (showDetailedError) {
         console.error("handleApply error details:", error);
       }

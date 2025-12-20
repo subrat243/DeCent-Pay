@@ -32,6 +32,7 @@ export interface EscrowData {
   milestones?: any[];
   project_title?: string;
   project_description?: string;
+  is_open_job: boolean;
 }
 
 export interface CreateEscrowParams {
@@ -482,7 +483,7 @@ export class ContractService {
       const createdAt = getU32Value(getField("created_at"));
       const projectTitle = getValue(getField("project_title"));
       const projectDescription = getValue(getField("project_description"));
-      
+
       // Extract is_open_job boolean
       const isOpenJobField = getField("is_open_job");
       let isOpenJob: boolean;
@@ -651,7 +652,7 @@ export class ContractService {
       const sourceAccount = {
         accountId: () => sourceAddress,
         sequenceNumber: () => "0",
-        incrementSequenceNumber: () => {},
+        incrementSequenceNumber: () => { },
       } as any;
 
       const tx = new TransactionBuilder(sourceAccount, {
@@ -746,7 +747,7 @@ export class ContractService {
         const sourceAccount = {
           accountId: () => sourceAddress,
           sequenceNumber: () => "0",
-          incrementSequenceNumber: () => {},
+          incrementSequenceNumber: () => { },
         } as any;
 
         const tx = new TransactionBuilder(sourceAccount, {
@@ -834,7 +835,7 @@ export class ContractService {
         (app) =>
           app.freelancer &&
           app.freelancer.toLowerCase().trim() ===
-            userAddress.toLowerCase().trim()
+          userAddress.toLowerCase().trim()
       );
 
       console.log(`[hasUserApplied] User has applied: ${hasApplied}`);
@@ -863,7 +864,7 @@ export class ContractService {
       const sourceAccount = {
         accountId: () => sourceAddress,
         sequenceNumber: () => "0",
-        incrementSequenceNumber: () => {},
+        incrementSequenceNumber: () => { },
       } as any;
 
       const tx = new TransactionBuilder(sourceAccount, {
@@ -925,7 +926,7 @@ export class ContractService {
       const sourceAccount = {
         accountId: () => sourceAddress,
         sequenceNumber: () => "0",
-        incrementSequenceNumber: () => {},
+        incrementSequenceNumber: () => { },
       } as any;
 
       const tx = new TransactionBuilder(sourceAccount, {
@@ -1139,7 +1140,7 @@ export class ContractService {
       const sourceAccount = {
         accountId: () => sourceAddress,
         sequenceNumber: () => "0",
-        incrementSequenceNumber: () => {},
+        incrementSequenceNumber: () => { },
       } as any;
 
       const tx = new TransactionBuilder(sourceAccount, {
@@ -1210,7 +1211,7 @@ export class ContractService {
         const sourceAccount = {
           accountId: () => sourceAddress,
           sequenceNumber: () => "0",
-          incrementSequenceNumber: () => {},
+          incrementSequenceNumber: () => { },
         } as any;
 
         const tx = new TransactionBuilder(sourceAccount, {
@@ -1335,9 +1336,9 @@ export class ContractService {
                         ),
                         proposed_timeline: Number(
                           app.proposed_timeline ||
-                            app.proposedTimeline ||
-                            app[2] ||
-                            0
+                          app.proposedTimeline ||
+                          app[2] ||
+                          0
                         ),
                         applied_at: Number(
                           app.applied_at || app.appliedAt || app[3] || 0
@@ -1386,9 +1387,9 @@ export class ContractService {
                     ),
                     proposed_timeline: Number(
                       app.proposed_timeline ||
-                        app.proposedTimeline ||
-                        app[2] ||
-                        0
+                      app.proposedTimeline ||
+                      app[2] ||
+                      0
                     ),
                     applied_at: Number(
                       app.applied_at || app.appliedAt || app[3] || 0
@@ -1493,18 +1494,18 @@ export class ContractService {
                     freelancerAddress = String(applicationData.freelancer);
                     coverLetter = String(
                       applicationData.cover_letter ||
-                        applicationData.coverLetter ||
-                        ""
+                      applicationData.coverLetter ||
+                      ""
                     );
                     proposedTimeline = Number(
                       applicationData.proposed_timeline ||
-                        applicationData.proposedTimeline ||
-                        0
+                      applicationData.proposedTimeline ||
+                      0
                     );
                     appliedAt = Number(
                       applicationData.applied_at ||
-                        applicationData.appliedAt ||
-                        0
+                      applicationData.appliedAt ||
+                      0
                     );
                   } else if (
                     Array.isArray(applicationData) &&
@@ -1679,7 +1680,7 @@ export class ContractService {
       const sourceAccount = {
         accountId: () => sourceAddress,
         sequenceNumber: () => "0",
-        incrementSequenceNumber: () => {},
+        incrementSequenceNumber: () => { },
       } as any;
 
       // Build transaction for simulation
@@ -3827,7 +3828,7 @@ export class ContractService {
       const sourceAccount = {
         accountId: () => sourceAddress,
         sequenceNumber: () => "0",
-        incrementSequenceNumber: () => {},
+        incrementSequenceNumber: () => { },
       } as any;
 
       const tx = new TransactionBuilder(sourceAccount, {
