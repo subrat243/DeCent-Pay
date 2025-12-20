@@ -659,8 +659,6 @@ export function Web3Provider({ children }: { children: ReactNode }) {
             });
 
             // Build transaction
-            // CRITICAL: Argument order must match Rust contract:
-            // fn apply_to_job(env, escrow_id, freelancer, cover_letter, proposed_timeline)
             const tx = new TransactionBuilder(sourceAccount, {
               fee: "100",
               networkPassphrase: network.networkPassphrase,
@@ -669,9 +667,9 @@ export function Web3Provider({ children }: { children: ReactNode }) {
                 contract.call(
                   "apply_to_job",
                   escrowIdScVal,
-                  freelancerScVal, // Moved to 2nd position
                   coverLetterScVal,
-                  proposedTimelineScVal
+                  proposedTimelineScVal,
+                  freelancerScVal
                 )
               )
               .setTimeout(30)
