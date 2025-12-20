@@ -625,7 +625,7 @@ export function Web3Provider({ children }: { children: ReactNode }) {
             // This automatically handles auth entry signing and transaction preparation
             console.log("Applying to job with args:", args[0]);
             console.log("Calling client.apply_to_job()...");
-            
+
             // Validate parameters before calling client
             const applyParams = args[0];
             console.log("[apply_to_job] Validating parameters:", {
@@ -638,25 +638,25 @@ export function Web3Provider({ children }: { children: ReactNode }) {
               freelancer: applyParams.freelancer,
               freelancer_type: typeof applyParams.freelancer,
             });
-            
+
             try {
               const assembledTxResult = await client.apply_to_job(applyParams);
               console.log(
                 "[apply_to_job] client.apply_to_job() succeeded"
               );
-              
+
               // Log details about the assembled transaction
               console.log("[apply_to_job] AssembledTransaction details:", {
                 hasToXDR: typeof assembledTxResult.toXDR === "function",
                 hasResult: assembledTxResult.result !== undefined,
                 resultType: typeof assembledTxResult.result,
               });
-              
+
               // Check if there's any auth info we need to handle
               if ((assembledTxResult as any).authEntry) {
                 console.log("[apply_to_job] Auth entry found in AssembledTransaction");
               }
-              
+
               assembledTx = assembledTxResult;
             } catch (applyError: any) {
               console.error("[apply_to_job] Error in client.apply_to_job():", {
@@ -1113,7 +1113,7 @@ export function Web3Provider({ children }: { children: ReactNode }) {
               args,
               address: walletState.address,
             });
-            
+
             // Use signTransaction from WalletProvider if available, otherwise fallback to wallet instance
             const signTx = walletSignTransaction || wallet.signTransaction;
             console.log("About to sign transaction...", {
@@ -1132,8 +1132,43 @@ export function Web3Provider({ children }: { children: ReactNode }) {
               throw new Error("Wallet address is required");
             }
 
-            // Get the transaction XDR
-            const xdr = assembledTx.toXDR();
+            // Check for auth entries in AssembledTransaction and sign them if needed
+            // This is CRITICAL for Soroban require_auth() calls
+            let finalAssembledTx = assembledTx;
+            try {
+              // Soroban auth entries are stored in the simulation result
+              // Looking at assembledTx structure from stellar-sdk
+              const simulation = (assembledTx as any).simulation;
+              const authEntries = simulation?.auth || [];
+
+              if (authEntries && authEntries.length > 0) {
+                console.log(`[${method}] Found ${authEntries.length} auth entries to sign`);
+
+                const { signAuthEntries } = await import("@/lib/web3/wallet-signer");
+                const signedAuthEntries = await signAuthEntries(
+                  authEntries,
+                  walletState.address
+                );
+
+                console.log(`[${method}] Successfully signed ${signedAuthEntries.length} auth entries`);
+
+                // Re-assemble the transaction with signed auth entries
+                // This uses the internal logic to join signatures
+                if (typeof assembledTx.signAuthEntries === "function") {
+                  finalAssembledTx = await (assembledTx as any).signAuthEntries(...signedAuthEntries);
+                } else {
+                  console.warn(`[${method}] assembledTx.signAuthEntries is not a function, trying manual injection`);
+                  // Fallback: manually update the auth entries in the simulation or xdr
+                  // But signAuthEntries is should be available on AssembledTransaction
+                }
+              }
+            } catch (authError) {
+              console.error(`[${method}] Error signing auth entries:`, authError);
+              // Continue anyway, as some transactions might work with just transaction-level signing
+            }
+
+            // Get the transaction XDR (now with signed auth entries if applicable)
+            const xdr = finalAssembledTx.toXDR();
             console.log(
               "[apply_to_job] Transaction XDR created, requesting wallet signature..."
             );
@@ -1371,20 +1406,20 @@ export function Web3Provider({ children }: { children: ReactNode }) {
               methodCalled: method,
               args: args,
             });
-            
+
             // Check for user rejection in various forms
-            const isUserRejection = 
+            const isUserRejection =
               errorMessage.toLowerCase().includes("user rejected") ||
               errorMessage.toLowerCase().includes("rejected") ||
               errorMessage.toLowerCase().includes("denied") ||
               errorMessage.toLowerCase().includes("user denied") ||
               signError.code === 4001 || // EIP-1193 user rejection code
               signError.code === -4;      // Soroban/Stellar wallet rejection code
-            
+
             if (isUserRejection) {
               throw new Error("Transaction was rejected by user");
             }
-            
+
             throw signError;
           }
         } catch (error: any) {

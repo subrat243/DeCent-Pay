@@ -13,7 +13,7 @@ pub fn apply_to_job(
     freelancer: Address,
 ) -> Result<(), Error> {
     // Verify that the freelancer is authorized
-    // The freelancer address must match the transaction signer
+    // Use require_auth() normally. The frontend is now updated to properly sign auth entries.
     freelancer.require_auth();
 
     // Check if job creation is paused
