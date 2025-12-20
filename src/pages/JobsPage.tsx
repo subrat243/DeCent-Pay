@@ -517,9 +517,10 @@ export default function JobsPage() {
       // Refresh the ongoing projects count
       await countOngoingProjects();
     } catch (error) {
+      console.error("[JobsPage] Application error:", error);
       toast({
         title: "Application Failed",
-        description: "Could not submit your application. Please try again.",
+        description: error instanceof Error ? error.message : "Could not submit your application. Please try again.",
         variant: "destructive",
       });
     } finally {
