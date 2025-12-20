@@ -21,7 +21,7 @@ export const STELLAR_NETWORKS = {
 // Fallback to the deployed contract ID if env variable is not set
 // Testnet contract ID (deployed on testnet) - Updated with authentication fix for apply_to_job
 const DEFAULT_CONTRACT_ID =
-  "CCNFKRIZIJQWLWEMD5U6YEJ32P4IZUK6OLRHIR437FBZJ5DN6ILDFEB2";
+  "CCDTQ6BD7W4K5IDAUKKTZQRUFXN3PEJ6EWFTQFABK6FZQ2FJI66GO5CT";
 
 export const CONTRACTS = {
   DeCentPay_ESCROW:

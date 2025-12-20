@@ -1,7 +1,7 @@
 use crate::admin;
 use crate::escrow_core;
 use crate::storage_types::{Application, DataKey, EscrowStatus, DeCentPayError, INSTANCE_BUMP_AMOUNT, INSTANCE_LIFETIME_THRESHOLD};
-use soroban_sdk::{Env, Address, String, Vec, Error, IntoVal};
+use soroban_sdk::{Env, Address, String, Vec, Error};
 
 const MAX_APPLICATIONS: u32 = 50;
 
@@ -13,9 +13,9 @@ pub fn apply_to_job(
     freelancer: Address,
 ) -> Result<(), Error> {
     // Verify that the freelancer is authorized
-    // Use require_auth_for_args(().into_val(env)) to bypass strict argument type checks
-    // while still ensuring the freelancer is authenticated for this call.
-    freelancer.require_auth_for_args(().into_val(env));
+    // Use require_auth() instead of require_auth_for_args(()) to avoid authorization mismatch
+    // require_auth() validates that the freelancer signed the transaction without checking specific args
+    freelancer.require_auth();
 
     // Check if job creation is paused
     if admin::is_job_creation_paused(env) {
